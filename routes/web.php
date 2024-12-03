@@ -5,11 +5,20 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\StaffController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\MenuController;
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
+    Route::get('/managemenu', [MenuController::class, 'index'])->name('managemenu');
+    Route::put('/manage-menu/update/{id}', [MenuController::class, 'update'])->name('menu.update');  // Changed to PUT
+});
 
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirectToGoogle'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
-
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
