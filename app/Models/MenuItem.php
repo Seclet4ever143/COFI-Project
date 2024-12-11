@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class MenuItem extends Model
 {
-    protected $fillable = ['name', 'price', 'qty', 'category', 'availability'];
+    protected $fillable = ['name', 'price', 'qty', 'category', 'availability', 'product_id'];
 
+    // Relationship to Product
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

@@ -35,9 +35,21 @@ const showingNavigationDropdown = ref(false);
                                     Menu/Inventory
                                 </NavLink>
 
-                                <NavLink :href="route('managemenu')" :active="route().current('managemenu')">
-                                    
+                                <NavLink :href="route('accountmanagement')"
+                                    :active="route().current('accountmanagement')">
+                                    Account Management
                                 </NavLink>
+
+                                <NavLink :href="route('productmanagement')"
+                                    :active="route().current('productmanagement')">
+                                    Product Management
+                                </NavLink>
+
+                                <NavLink :href="route('ordermanagement')" :active="route().current('ordermanagement')">
+                                    Order Management
+                                </NavLink>
+
+
                             </div>
                         </div>
 
@@ -109,8 +121,9 @@ const showingNavigationDropdown = ref(false);
                             Dashboard
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('managemenu')" :active="route().current('managemenu')">
-                                    Manage Menu
+                            Manage Menu
                         </ResponsiveNavLink>
+
                     </div>
 
                     <!-- Responsive Settings Options -->

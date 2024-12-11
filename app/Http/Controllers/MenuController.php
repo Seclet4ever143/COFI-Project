@@ -19,32 +19,55 @@ class MenuController extends Controller
             ->groupBy('category') // Group by 'category' field
             ->toArray(); // Convert to an array for Inertia
 
-        return Inertia::render('ManageMenu', [
+        return Inertia::render('Admin/ManageMenu', [
             'menuItems' => $menuItems, // Pass to Vue
             'success' => session('success'), // Optional success message
         ]);
     }
 
+    public function updateQuantity(Request $request, $id)
+{
+    $request->validate([
+        'qty' => 'required|integer|min:0',
+    ]);
+
+    $menu = MenuItem::findOrFail($id);
+    $menu->qty = $request->qty;
+    $menu->save();
+
+    return back()->with('success', 'Quantity updated successfully.');
+}
+
+
     /**
      * Update a menu item.
      */
     public function update(Request $request, $id)
-    {
-        $request->validate([
-            'price' => 'required|numeric|min:0',
-            'qty' => 'required|integer|min:0',
-            'availability' => 'required|string|in:Available,Unavailable',
-        ]);
+{
+    $request->validate([
+        'price' => 'required|numeric|min:0',
+        'qty' => 'required|integer|min:0',
+        'availability' => 'required|string|in:Available,Unavailable',
+    ]);
 
-        $menuItem = MenuItem::findOrFail($id);
-        $menuItem->update([
+    $menuItem = MenuItem::findOrFail($id);
+    $menuItem->update([
+        'price' => $request->price,
+        'qty' => $request->qty,
+        'availability' => $request->availability,
+    ]);
+
+    // Update the associated Product
+    if ($menuItem->product) {
+        $menuItem->product->update([
             'price' => $request->price,
             'qty' => $request->qty,
-            'availability' => $request->availability,
         ]);
-
-        return redirect()->back()->with('success', 'Menu item updated successfully.');
     }
+
+    return redirect()->back()->with('success', 'Menu item updated successfully.');
+}
+
 
 
     /**
@@ -57,7 +80,7 @@ class MenuController extends Controller
         $menuItem->delete();
 
         // Return an Inertia response to indicate success
-        return inertia('ManageMenu', [
+        return inertia('Admin/ManageMenu', [
             'menuItems' => MenuItem::all()->groupBy('category'),
             'success' => 'Menu item deleted successfully.',
         ]);

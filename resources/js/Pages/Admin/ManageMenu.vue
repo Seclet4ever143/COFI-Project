@@ -1,6 +1,18 @@
 <template>
+    <Head title="Admin Menu" />
+
     <AdminAuthenticatedLayout>
+            
+
         <div class="container mx-auto px-4 py-8">
+            <div class="mb-10 border">
+                <h1
+                class="text-xl font-bold leading-tight text-gray-800"
+            >
+                MENU / INVENTORY
+            </h1>
+            </div>
+            
             <!-- Success Message -->
             <div v-if="successMessage"
                 class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-sm">
@@ -8,7 +20,7 @@
             </div>
 
             <!-- Menu Items by Category -->
-            <div v-for="(items, category) in sortedMenuItems" :key="category" class="mb-10">
+            <div v-for="(items, category) in sortedMenuItems" :key="category" class="mb-10 container">
                 <h2 class="text-3xl font-bold mb-6 text-gray-800 border-b pb-2">{{ category }}</h2>
 
                 <div class="overflow-x-auto bg-white rounded-lg shadow">
@@ -58,7 +70,6 @@
                 </div>
             </div>
 
-            <!-- Edit Menu Modal -->
             <!-- Edit Menu Modal -->
             <div v-if="showEditModal"
                 class="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-75 z-50 transition-opacity duration-300 ease-in-out">
@@ -141,6 +152,7 @@
 </template>
 
 <script setup>
+import { Head } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AdminAuthenticatedLayout from '@/Layouts/AdminAuthenticatedLayout.vue';
@@ -200,8 +212,13 @@ const updateMenu = () => {
             showEditModal.value = false;
             successMessage.value = 'Menu item updated successfully.';
         },
+        onError: () => {
+            successMessage.value = ''; // Reset success message
+            alert('Error updating menu item. Please try again.');
+        }
     });
 };
+
 
 const cancelEdit = () => {
     showEditModal.value = false;

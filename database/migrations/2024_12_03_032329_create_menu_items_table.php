@@ -15,6 +15,10 @@ return new class extends Migration
         $table->id();
         $table->string('name');
         $table->decimal('price', 8, 2);
+        $table->integer('qty')->default(0);
+        $table->string('category')->nullable();
+        $table->string('availability')->default('Available'); // or 'Unavailable' as default
+        $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('cascade');
         $table->timestamps();
     });
 }
