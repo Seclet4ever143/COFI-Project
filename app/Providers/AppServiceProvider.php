@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -25,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        app()->singleton('role', function () {
+            return new RoleMiddleware();
+        });
+        
         // Hook into the authenticated user session
         if (Auth::check()) {
             $user = Auth::user();

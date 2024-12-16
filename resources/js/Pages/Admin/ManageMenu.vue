@@ -1,18 +1,17 @@
 <template>
+
     <Head title="Admin Menu" />
 
     <AdminAuthenticatedLayout>
-            
 
-        <div class="container mx-auto px-4 py-8">
+
+        <div class="container mx-auto px-10 py-8">
             <div class="mb-10 border">
-                <h1
-                class="text-xl font-bold leading-tight text-gray-800"
-            >
-                MENU / INVENTORY
-            </h1>
+                <h1 class="text-xl font-bold leading-tight text-gray-800">
+                    INVENTORY
+                </h1>
             </div>
-            
+
             <!-- Success Message -->
             <div v-if="successMessage"
                 class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-sm">
@@ -53,9 +52,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.qty }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <span
-                                        :class="{ 'text-green-600 bg-green-100': item.availability === 'Available', 'text-red-600 bg-red-100': item.availability === 'Unavailable' }"
+                                        :class="{ 'text-green-600 bg-green-100': item.availability === true, 'text-red-600 bg-red-100': item.availability === false }"
                                         class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full">
-                                        {{ item.availability }}
+                                        {{ item.availability === true ? 'Available' : 'Unavailable' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -103,24 +102,26 @@
                                     <span class="text-gray-500 sm:text-sm">P</span>
                                 </div>
                                 <input v-model="editForm.price" type="number" id="price" step="0.01"
-                                    class="block w-full pl-7 pr-12 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    class="block w-full pl-7 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                     placeholder="0.00" />
                             </div>
                         </div>
+
                         <div class="space-y-2">
                             <label for="qty" class="block text-sm font-medium text-gray-700">Quantity</label>
                             <input v-model="editForm.qty" type="number" id="qty"
                                 class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                 placeholder="Enter quantity" />
                         </div>
+                        
                         <div class="space-y-2">
                             <label for="availability"
                                 class="block text-sm font-medium text-gray-700">Availability</label>
                             <div class="relative">
                                 <select v-model="editForm.availability" id="availability"
                                     class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md appearance-none">
-                                    <option value="Available">Available</option>
-                                    <option value="Unavailable">Unavailable</option>
+                                    <option :value="true">Available</option>
+                                    <option :value="false">Unavailable</option>
                                 </select>
                                 <div
                                     class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -132,6 +133,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="flex justify-end space-x-3 pt-4">
                             <button type="button" @click="cancelEdit"
                                 class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
@@ -145,7 +147,6 @@
                     </form>
                 </div>
             </div>
-
 
         </div>
     </AdminAuthenticatedLayout>
@@ -174,11 +175,10 @@ const editForm = useForm({
 const successMessage = ref(props.success || '');
 
 const categoryOrderMap = {
-    FOOD: 1,
-    DESSERT: 2,
-    COFFEE: 3,
-    BEVERAGE: 4,
-    DEFAULT: 5,
+    'Holiday Limited Edition': 1,
+    'Coffee Beverage': 2,
+    'Foods & Snacks': 3,
+    'Coffee Beans & Ground Coffee': 4,
 };
 
 const sortedMenuItems = computed(() => {
@@ -215,9 +215,11 @@ const updateMenu = () => {
         onError: () => {
             successMessage.value = ''; // Reset success message
             alert('Error updating menu item. Please try again.');
-        }
+        },
     });
 };
+
+
 
 
 const cancelEdit = () => {

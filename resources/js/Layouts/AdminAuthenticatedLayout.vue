@@ -32,7 +32,7 @@ const showingNavigationDropdown = ref(false);
                                 </NavLink>
 
                                 <NavLink :href="route('managemenu')" :active="route().current('managemenu')">
-                                    Menu/Inventory
+                                    Inventory
                                 </NavLink>
 
                                 <NavLink :href="route('accountmanagement')"
@@ -49,6 +49,7 @@ const showingNavigationDropdown = ref(false);
                                     Order Management
                                 </NavLink>
 
+                                
 
                             </div>
                         </div>

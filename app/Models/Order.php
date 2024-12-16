@@ -9,21 +9,32 @@ class Order extends Model
 {
     use HasFactory;
 
-    // Define the table name (optional if the table name is 'orders')
+    // Specify table name (optional if using Laravel conventions)
     protected $table = 'orders';
 
-    // Specify the fillable attributes for mass assignment
+    // Specify fillable fields
     protected $fillable = [
-        'order_number',
-        'customer_name',
-        'items',
-        'total_price',
+        'customer_id',
+        'staff_id',
+        'total_amount',
         'status',
     ];
-    
 
-    // Cast attributes to appropriate types
-    protected $casts = [
-        'items' => 'array', // Automatically casts the items to and from JSON
-    ];
+    // Relationships
+
+    // Relationship to User as Customer
+    public function customer()
+    {
+        return $this->belongsTo(User::class, 'customer_id');
+    }
+
+    public function staff()
+    {
+        return $this->belongsTo(User::class, 'staff_id');
+    }
+
+    public function orderDetails()
+    {
+        return $this->hasMany(OrderDetail::class);
+    }
 }

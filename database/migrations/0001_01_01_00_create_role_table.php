@@ -9,24 +9,23 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
-            $table->id();
+        Schema::disableForeignKeyConstraints();
+
+        Schema::create('role', function (Blueprint $table) {
+            $table->integer('id')->primary();
             $table->string('name');
-            $table->string('category');
-            $table->decimal('price', 8, 2);
-            $table->integer('qty');
-            $table->timestamps();
         });
+
+        Schema::enableForeignKeyConstraints();
     }
-    
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('product');
+        Schema::dropIfExists('role');
     }
 };
