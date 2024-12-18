@@ -5,9 +5,9 @@
     <AdminAuthenticatedLayout>
 
 
-        <div class="container mx-auto px-10 py-8">
-            <div class="mb-10 border">
-                <h1 class="text-xl font-bold leading-tight text-gray-800">
+        <div class="min-h-screen container mx-auto px-10 py-8 bg-slate-800">
+            <div class="mb-10 mx-auto justify-center text-center w-[300px] ">
+                <h1 class="text-xl font-bold leading-tight text-gray-800  bg-slate-300 rounded-lg">
                     INVENTORY
                 </h1>
             </div>
@@ -17,10 +17,20 @@
                 class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-sm">
                 {{ successMessage }}
             </div>
+            <!-- No menu items message -->
+            <div v-if="!props.menuItems || props.menuItems.length === 0" class="text-center text-gray-500 bg-slate-300 p-8 rounded-lg shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-400" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                <p class="text-xl font-semibold">No menu items found.</p>
+                <p class="mt-2">Your menu items will appear here once they are added.</p>
+            </div>  
 
             <!-- Menu Items by Category -->
             <div v-for="(items, category) in sortedMenuItems" :key="category" class="mb-10 container">
-                <h2 class="text-3xl font-bold mb-6 text-gray-800 border-b pb-2">{{ category }}</h2>
+                <h2 class="text-3xl font-bold mb-6 border-b pb-2 text-white">{{ category }}</h2>
 
                 <div class="overflow-x-auto bg-white rounded-lg shadow">
                     <table class="min-w-full divide-y divide-gray-200">
@@ -113,7 +123,7 @@
                                 class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                 placeholder="Enter quantity" />
                         </div>
-                        
+
                         <div class="space-y-2">
                             <label for="availability"
                                 class="block text-sm font-medium text-gray-700">Availability</label>
@@ -149,6 +159,7 @@
             </div>
 
         </div>
+
     </AdminAuthenticatedLayout>
 </template>
 

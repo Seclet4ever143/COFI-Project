@@ -9,11 +9,6 @@ class User extends Authenticatable
 {
     use Notifiable;
 
-    // Define constants for roles
-    const ROLE_ADMIN = 1;
-    const ROLE_STAFF = 2;
-    const ROLE_CUSTOMER = 3;
-
     protected $fillable = [
         'role_id', 'name', 'email', 'phone', 'password', 'google_id',
     ];

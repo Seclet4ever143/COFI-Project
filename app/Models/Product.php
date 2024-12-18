@@ -12,6 +12,11 @@ class Product extends Model
     // Specify table name (optional if using Laravel conventions)
     protected $table = 'products';
 
+    protected $casts = [
+        'availability' => 'boolean',
+    ];
+    
+
     // Specify fillable fields
     protected $fillable = [
         'id',

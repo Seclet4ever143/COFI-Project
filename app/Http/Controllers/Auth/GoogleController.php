@@ -30,7 +30,7 @@ public function handleGoogleCallback()
         // Log the user in
         Auth::login($user);
 
-        return redirect()->intended('dashboard'); // Adjust redirect as needed
+        return redirect()->intended('/'); // Adjust redirect as needed
     } catch (\Exception $e) {
         return redirect()->route('login')->with('status', 'An error occurred during login. Please try again.');
     }

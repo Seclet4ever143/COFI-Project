@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::disableForeignKeyConstraints();
 
         Schema::create('products', function (Blueprint $table) {
-            $table->integer('id')->primary();
+            $table->id();
             $table->integer('category_id');
             $table->foreign('category_id')->references('id')->on('categories');
             $table->string('name', 100);

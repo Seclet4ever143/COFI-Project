@@ -1,12 +1,3 @@
 <template>
-    <div>
-        <img src="/images/app-logo.svg" alt="My Custom Icon" class="svg-icon" />
-    </div>
+    <img src="/images/logo.png" alt="logo">
 </template>
-
-<style>
-.svg-icon {
-    width: 50px;
-    height: 40px;
-}
-</style>

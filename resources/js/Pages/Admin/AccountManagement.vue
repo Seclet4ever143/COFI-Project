@@ -3,17 +3,25 @@ import { reactive, ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import AdminAuthenticatedLayout from '@/Layouts/AdminAuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import axios from 'axios';
+import { PlusIcon } from '@heroicons/vue/24/outline';
+import { XMarkIcon } from '@heroicons/vue/24/outline';
 
-const form = useForm({
+
+const form = ref({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
-    phone: '',
-    role_id: 1,
+    role_id: '3', // Default to "Customer"
 });
+
 // Success message state
 const successMessage = ref('');
+const errorMessage = ref('');
+const showModal = ref(false); // Controls modal visibility
+
 
 // Store users fetched from the backend
 const users = reactive({
@@ -37,24 +45,32 @@ const showDeleteModal = ref(false);
 const deleteUserId = ref(null);  // Store the user ID to be deleted
 
 // Function to create an account
-const createAccount = () => {
-    console.log(form);  // Debugging log to check form data
-    if (form.password !== form.confirmPassword) {
-        alert('Passwords do not match');
-        return;
-    }
+// const createAccount = () => {
+//     if (form.password !== form.confirmPassword) {
+//         alert('Passwords do not match');
+//         return;
+//     }
 
-    form.post(route('account.store'), {
-        onSuccess: () => {
-            form.reset();
-            successMessage.value = 'Account created successfully!';
-            fetchUsers(); // Refresh users after creating a new account
-        },
-        onError: (errors) => {
-            console.error(errors);
-        },
-    });
-};
+//     form.post(route('account.store'), {
+//         onSuccess: () => {
+//             form.reset();
+//             successMessage.value = 'Account created successfully!';
+//             fetchUsers(); // Refresh users after creating a new account
+//         },
+//         onError: (errors) => {
+//             console.error(errors);
+
+//             if (errors.email) {
+//                 errorMessage.value = errors.email; // Display email error specifically
+//             } else if (errors.phone) {
+//                 errorMessage.value = errors.phone; // Display phone error
+//             } else {
+//                 errorMessage.value = 'There were some errors with your submission.';
+//             }
+//         },
+//     });
+// };
+
 
 
 
@@ -125,19 +141,49 @@ const confirmDeleteUser = (userId) => {
     showDeleteModal.value = true;  // Show the delete confirmation modal
 };
 
+
 // Function to delete the user
-const deleteUser = () => {
-    axios.delete(route('account.destroy', deleteUserId.value))
-        .then(() => {
-            successMessage.value = 'User deleted successfully!';  // Show success message
-            showDeleteModal.value = false;  // Close the modal
-            fetchUsers();  // Refresh the users list
-        })
-        .catch((error) => {
-            console.error(error);
-            alert('Error deleting user');
-        });
+const deleteUser = async () => {
+    try {
+        console.log(deleteUserId.value);
+        await form.delete(route('account.destroy', deleteUserId.value));
+
+        successMessage.value = 'User deleted successfully!';  // Show success message
+        showDeleteModal.value = false;  // Close the modal
+        fetchUsers();  // Refresh the users list
+    } catch (error) {
+        console.error(error);
+        alert('Error deleting user');
+    }
 };
+
+const createAccount = () => {
+    if (form.value.password !== form.value.confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+    }
+    // Handle form submission here
+    console.log('Account created:', form.value);
+    // Reset form and close modal
+    form.value = { name: '', email: '', phone: '', password: '', confirmPassword: '', role_id: '3' };
+    showModal.value = false;
+};
+
+// const deleteUser = () => {
+
+//     console.log(users.id);
+
+
+//     axios.delete(`Admin/Account/${users.id}`)
+//         .then(() => {
+//             console.log('User deleted');
+//         })
+//         .catch(error => {
+//             console.error('Error:', error);
+//         });
+// };
+
+
 </script>
 
 <template>
@@ -145,25 +191,48 @@ const deleteUser = () => {
     <Head title="Account Management" />
 
     <AdminAuthenticatedLayout>
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div
+            class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 transition-colors duration-300">
             <!-- Success Message -->
             <div v-if="successMessage"
                 class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-sm">
                 {{ successMessage }}
             </div>
 
-            <h1 class="text-3xl font-semibold text-gray-800 mb-6">Account Management</h1>
+            <!-- General error message -->
+            <div v-if="errorMessage"
+                class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md shadow-sm">
+                {{ errorMessage }}
+            </div>
+
+            <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-5 text-center ">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
+                    Account Management
+                </span>
+            </h1>
+
+            <!-- Modal Trigger Button -->
+            <!-- <button @click="showModal = true"
+                class="bg-indigo-600 mb-10 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out">
+                Create Account
+            </button> -->
+            <button @click="showModal = true"
+                class="group mb-6 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out transform hover:scale-105 dark:bg-indigo-500 dark:hover:bg-indigo-600">
+                <PlusIcon
+                    class="h-5 w-5 mr-2 transition-transform duration-300 ease-in-out transform group-hover:rotate-180" />
+                Create Account
+            </button>
 
             <!-- Display Users by Role -->
             <div class="grid grid-cols-1 gap-6 mb-10">
                 <div v-for="(roleUsers, role) in users" :key="role"
-                    class="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
+                    class="bg-slate-400 p-4 rounded-lg shadow-md overflow-x-auto">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4 capitalize">{{ role }}s</h2>
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
-                            <tr>
+                            <tr class="bg-slate-300">
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class=" px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     No.</th>
                                 <th scope="col"
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -179,7 +248,7 @@ const deleteUser = () => {
                                     Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="bg-slate-200 divide-y divide-gray-200">
                             <tr v-for="(user, index) in roleUsers" :key="user.id">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ index + 1 }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ user.name
@@ -198,63 +267,82 @@ const deleteUser = () => {
                 </div>
             </div>
 
-            <!-- Account Creation Form -->
-            <div class="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Create an Account</h2>
-                <form @submit.prevent="createAccount" class="space-y-6">
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-                        <input id="name" type="text" v-model="form.name"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                            required />
+
+            <div v-if="showModal"
+                class="fixed inset-0 flex items-center justify-center z-50 bg-gray-900 bg-opacity-50 backdrop-blur-sm">
+                <div
+                    class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-auto relative">
+                    <div class="absolute top-4 right-4">
+                        <button @click="showModal = false"
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200">
+                            <XMarkIcon class="h-6 w-6" />
+                            <span class="sr-only">Close</span>
+                        </button>
                     </div>
 
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                        <input id="email" type="email" v-model="form.email"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                            required />
-                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Create an Account</h2>
 
-                    <div>
-                        <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                        <input id="phone" type="tel" v-model="form.phone"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                            required />
-                    </div>
+                    <form @submit.prevent="createAccount" class="space-y-6">
+                        <div class="space-y-2">
+                            <label for="name"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                            <input id="name" type="text" v-model="form.name"
+                                class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+                                required />
+                        </div>
 
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                        <input id="password" type="password" v-model="form.password"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                            required />
-                    </div>
+                        <div class="space-y-2">
+                            <label for="email"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                            <input id="email" type="email" v-model="form.email"
+                                class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+                                required />
+                        </div>
 
-                    <div>
-                        <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm
-                            Password</label>
-                        <input id="confirmPassword" type="password" v-model="form.confirmPassword"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                            required />
-                    </div>
+                        <div class="space-y-2">
+                            <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone
+                                Number</label>
+                            <input id="phone" type="tel" v-model="form.phone"
+                                class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+                                required />
+                        </div>
 
-                    <div>
-                        <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
-                        <select id="role" v-model="form.role_id"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="2">Staff</option>
-                            <option value="1">Admin</option>
-                            <option value="3">Customer</option>
-                        </select>
+                        <div class="space-y-2">
+                            <label for="password"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                            <input id="password" type="password" v-model="form.password"
+                                class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+                                required />
+                        </div>
 
-                    </div>
+                        <div class="space-y-2">
+                            <label for="confirmPassword"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm
+                                Password</label>
+                            <input id="confirmPassword" type="password" v-model="form.confirmPassword"
+                                class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+                                required />
+                        </div>
 
-                    <PrimaryButton type="submit"
-                        class=" hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out">
-                        Create Account
-                    </PrimaryButton>
-                </form>
+                        <div class="space-y-2">
+                            <label for="role"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
+                            <select id="role" v-model="form.role_id"
+                                class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white">
+                                <option value="2">Staff</option>
+                                <option value="1">Admin</option>
+                                <option value="3">Customer</option>
+                            </select>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Create Account
+                        </button>
+                    </form>
+                </div>
             </div>
+
 
             <!-- Edit User Modal -->
             <div v-if="showEditModal"

@@ -2,9 +2,9 @@
     <Head title="Staff Menu Management" />
   
     <StaffAuthenticatedLayout>
-      <div class="min-h-screen bg-gradient-to-br from-emerald-900 to-forest-green text-white">
+      <div class="min-h-screen bg-gradient-to-br from-slate-900 to-forest-green text-white">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r bg-gray-100 mb-12 text-center">
+          <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r bg-gray-50 mb-12 text-center">
              Menu Management
           </h1>
   

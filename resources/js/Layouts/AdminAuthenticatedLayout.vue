@@ -12,12 +12,16 @@ const showingNavigationDropdown = ref(false);
 
 <template>
     <div>
-        <div class="min-h-screen bg-gray-100">
+        <div class="min-h-screen">
+            <div class="snowfall"></div>
             <nav class="border-b border-gray-100 bg-white">
                 <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 bg-slate-900">
                     <div class="flex h-16 justify-between">
                         <div class="flex">
+
+                            
+
                             <!-- Logo -->
                             <div class="flex shrink-0 items-center">
                                 <Link :href="route('dashboard')">
@@ -159,8 +163,36 @@ const showingNavigationDropdown = ref(false);
 
             <!-- Page Content -->
             <main>
+                
                 <slot />
             </main>
         </div>
     </div>
 </template>
+
+<style scoped>
+     .snowfall {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    background-image: 
+      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+      radial-gradient(circle at 25% 75%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+      radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.8) 1px, transparent 1px);
+    background-size: 100px 100px;
+    animation: snowfall 10s linear infinite;
+  }
+  
+  @keyframes snowfall {
+    0% {
+      background-position: 0 0, 0 0, 0 0;
+    }
+    100% {
+      background-position: 100px 100px, 50px 50px, -50px -50px;
+    }
+  }
+</style>

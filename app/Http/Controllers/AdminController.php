@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLogs;
+use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +16,18 @@ use Redirect;
 
 class AdminController extends Controller
 {
+
+    public function viewWelcome()
+    {
+        // Retrieve all products
+        $products = Product::all();
+        $category = Category::all();
+        // Return Inertia response, passing data to the Vue component
+        return Inertia::render('Menu', [
+            'products' => $products,
+            'category' => $category,
+        ]);
+    }
     public function viewMenu()
     {
         // Fetch data from the `products` table and group it by category
@@ -76,30 +91,36 @@ class AdminController extends Controller
     }
 
     public function insertIntoAccountManagement(Request $request)
-    {
-        // Validate the request data
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:15|unique:users', // Phone validation
-            'password' => 'required|string|min:8',
-            'role_id' => 'required|exists:role,id', // Validate role_id against the roles table
-        ]);
+{
+    // Validate the request data
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users,email', // Unique email check
+        'phone' => 'required|string|max:15|unique:users,phone', // Unique phone check
+        'password' => 'required|string|min:8',
+        'role_id' => 'required|exists:role,id', // Validate role_id against the roles table
+    ], [
+        // Custom error messages
+        'email.unique' => 'The email address is already registered.',
+        'phone.unique' => 'The phone number is already registered.',
+    ]);
 
-        // Insert the new user into the users table
-        DB::table('users')->insert([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'password' => Hash::make($validated['password']),
-            'role_id' => $validated['role_id'],  // Directly use the validated role_id
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+    // Insert the new user into the users table
+    DB::table('users')->insert([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'phone' => $validated['phone'],
+        'password' => Hash::make($validated['password']),
+        'role_id' => $validated['role_id'], 
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
 
-        // Return a success message
-        return back()->with('message', 'Account created successfully!');
-    }
+    // Return a success response
+    return response()->json(['message' => 'Account created successfully!'], 201);
+}
+
+    
 
     public function displayUsers()
     {
@@ -117,8 +138,8 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $id, // Ensure the current user's email is not considered unique
-            'phone' => 'required|string|max:15|unique:users,phone,' . $id, // Ensure current phone is not considered unique
+            'email' => "required|string|email|max:255|unique:users,email,$id", // Ensure the current user's email is not considered unique
+            'phone' => "required|string|max:15|unique:users,phone,$id", // Ensure current phone is not considered unique
             'role_id' => 'required|exists:role,id', // Validate role_id exists in roles table
         ]);
 
@@ -136,11 +157,18 @@ class AdminController extends Controller
 
     public function destroyUsers($id)
     {
-        // Delete the user using a DB query
+        // Optionally, you can set updated_by to null in related products
+        DB::table('products')->where('updated_by', $id)->update(['updated_by' => null]);
+    
+        // Now delete the user
         DB::table('users')->where('id', $id)->delete();
-
-        return response()->json(['message' => 'User deleted successfully']);
+    
+        return back()->with('message', 'Account deleted successfully!');
     }
+    
+
+
+
 
     public function viewProductManagement()
     {
@@ -193,53 +221,67 @@ class AdminController extends Controller
 
    
 
-public function updateProducts(Request $request, $id)
-{
-    try {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'qty' => 'required|integer|min:0',
-            'category_id' => 'required|integer|exists:categories,id',
-            'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'availability' => 'required|boolean',
-        ]);
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json(['errors' => $e->errors()], 422);
-    }
+    public function updateProducts(Request $request, $id)
+    {
 
-    // Check if the product exists
-    $product = DB::table('products')->where('id', $id)->first();
-    if (!$product) {
-        return response()->json(['error' => 'Product not found'], 404);
-    }
+        try {
 
-    // Handle image upload
-    $imagePath = $product->image;
-    if ($request->hasFile('image')) {
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'price' => 'required|numeric|min:0',
+                'qty' => 'required|integer|min:0',
+                'category_id' => 'required|integer|exists:categories,id',
+                'description' => 'required|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'availability' => 'required|boolean',
+
+            ]);
+            \Log::info('Validated data:', $validated);
+
+
+    
+            // Ensure availability is a Boolean
+            $validated['availability'] = filter_var($validated['availability'], FILTER_VALIDATE_BOOLEAN);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed:', $e->errors());
+            return response()->json(['errors' => $e->errors()], 422);
         }
-        $imagePath = $request->file('image')->store('images', 'public');
+    
+        // Check if the product exists
+        $product = DB::table('products')->where('id', $id)->first();
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+    
+        // Handle image upload
+        $imagePath = $product->image;
+        if ($request->hasFile('image')) {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $imagePath = $request->file('image')->store('images', 'public');
+        }
+        
+        
+        $validated['availability'] = (bool) $validated['availability'];
+
+
+        // Update the product
+        DB::table('products')->where('id', $id)->update([
+            'name' => $validated['name'],
+            'price' => $validated['price'],
+            'qty' => $validated['qty'],
+            'category_id' => $validated['category_id'],
+            'description' => $validated['description'],
+            'image' => $imagePath,
+            'availability' => $validated['availability'],
+            'updated_by' => auth()->id(),
+            'updated_at' => now(),
+        ]);
+    
+        return redirect('Admin/ProductManagement')->with('success', 'Product updated successfully');
     }
-
-
-    // Update the product
-    DB::table('products')->where('id', $id)->update([
-        'name' => $validated['name'],
-        'price' => $validated['price'],
-        'qty' => $validated['qty'],
-        'category_id' => $validated['category_id'],
-        'description' => $validated['description'],
-        'image' => $imagePath,
-        'availability' => $validated['availability'],
-        'updated_by' => auth()->id(),
-        'updated_at' => now(),
-    ]);
-
-    return redirect('Admin/ProductManagement')->with('success', 'Product updated successfully');
-}
+    
 
 
 
@@ -324,4 +366,31 @@ public function deleteOrder($id)
     return response()->json(['message' => 'Order deleted successfully']);
 }
 
+public function indexLogs()
+    {
+        // Retrieve all activity logs ordered by creation date (most recent first)
+        $activityLogs = ActivityLogs::orderBy('created_at', 'desc')->get();
+
+        return response()->json($activityLogs);
+    }
+
+    /**
+     * Fetch a specific activity log by ID.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function showLogs($id)
+    {
+        // Retrieve a specific activity log by ID
+        $activityLog = ActivityLogs::find($id);
+
+        if (!$activityLog) {
+            return response()->json(['message' => 'Activity log not found.'], 404);
+        }
+
+        return response()->json($activityLog);
+    }
 }
+
+

@@ -26,17 +26,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        app()->singleton('role', function () {
-            return new RoleMiddleware();
-        });
+        // app()->singleton('role', function () {
+        //     return new RoleMiddleware();
+        // });
         
-        // Hook into the authenticated user session
-        if (Auth::check()) {
-            $user = Auth::user();
-            $dbRole = strtolower($user->role);
+        // // Hook into the authenticated user session
+        // if (Auth::check()) {
+        //     $user = Auth::user();
+        //     $dbRole = strtolower($user->role);
 
-            // Set PostgreSQL role for the current session
-            DB::statement("SET ROLE \"$dbRole\"");
-        }
+        //     // Set PostgreSQL role for the current session
+        //     DB::statement("SET ROLE \"$dbRole\"");
+        // }
     }
 }

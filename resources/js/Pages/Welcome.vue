@@ -1,5 +1,8 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/inertia-vue3';
+import { Link } from '@inertiajs/inertia-vue3';
+import NavLink from '@/Components/NavLink.vue';
+import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 
 defineProps({
     canLogin: {
@@ -22,18 +25,55 @@ const products = [
     {
         name: 'DARK HOT CHOCOLATE',
         description: 'Bold, smooth, and luxuriously rich',
-        image: '/images/dark-hot-chocolate.png'
+        image: '/images/products/promo/dark-hot-chocolate.png',
+        price:'25.00'
     },
     {
         name: 'PEPPERMINT COCOA',
         description: 'Rich, creamy cocoa with a refreshing peppermint twist',
-        image: '/images/peppermint-cocoa.png'
+        image: '/images/products/promo/peppermint-cocoa.png',
+        price:'25.00'
     },
     {
         name: 'BISCOFF CREAM',
         description: 'A creamy coffee delight infused with the warm, spiced sweetness of Biscoff',
-        image: '/images/biscoff-cream.png'
+        image: '/images/products/promo/biscoff-cream.png',
+        price:'25.00'
     }
+];
+
+const latte = [
+    {
+        name: 'Classic Black Coffee',
+        image: '/images/products/latte/CLASSIC BLACK COFFEE.png',
+        price: '25.00'
+    },
+    {
+        name: 'Caramel Macchiato',
+        image: '/images/products/latte/CLASSIC CARAMEL MACCHIATO.png',
+        price: '25.00'
+    },
+    {
+        name: 'Hot Cocoa',
+        image: '/images/products/latte/CLASSIC HOT COCOA.png',
+        price: '25.00'
+    },
+    {
+        name: 'Classic Latte',
+        image: '/images/products/latte/CLASSIC LATTE.png',
+        price: '25.00'
+    },
+    {
+        name: 'Matcha Latte',
+        image: '/images/products/latte/MATCHA LATTE.png',
+        price: '25.00'
+    },
+    {
+        name: 'Strawberry Latte',
+        image: '/images/products/latte/STRAWBERRY LATTE.png',
+        price: '25.00'
+    },
+
 ];
 </script>
 
@@ -43,20 +83,15 @@ const products = [
 
     <div class="min-h-screen bg-[#2D5522] text-white overflow-hidden">
         <!-- Navigation -->
-        <div class="w-full px-4 sm:px-6">
+        <div class="w-full px-4 sm:px-6 mb-10">
             <header class="flex flex-wrap items-center justify-between py-6">
                 <!-- Logo -->
-                <div class="text-2xl sm:text-3xl font-bold ml-10">
-                    COFI
+                <div class="flex shrink-0 items-center ">
+                    <Link :href="route('dash-board')">
+                        <ApplicationLogo class="block h-9 w-auto fill-current text-gray-800" />
+                    </Link>
+                    <NavLink :href="route('dash-board')" class="ml-2 text-xl font-bold text-gray-900">COFI</NavLink>
                 </div>
-
-                <!-- Main Navigation -->
-                <nav class="hidden md:block">
-                    <ul class="flex space-x-8">
-                        <li><a href="#" class="hover:text-gray-200">MENU</a></li>
-                        <li><a href="#" class="hover:text-gray-200">CONTACT US</a></li>
-                    </ul>
-                </nav>
 
                 <!-- Mobile Menu Button -->
                 <button class="md:hidden p-2 rounded-md hover:bg-white/10">
@@ -70,9 +105,9 @@ const products = [
                 <!-- Auth Navigation -->
                 <nav v-if="canLogin"
                     class="w-full md:w-auto mt-4 md:mt-0 flex flex-wrap items-center justify-center md:justify-end space-y-2 md:space-y-0 space-x-0 md:space-x-4">
-                    <Link v-if="$page.props.auth.user" :href="route('dashboard')"
+                    <Link v-if="$page.props.auth.user" :href="route('dash-board')"
                         class="w-full md:w-auto rounded-md px-4 py-2 text-white ring-1 ring-white/20 transition hover:bg-white/10 text-center">
-                    Dashboard
+                        Dashboard
                     </Link>
 
                     <template v-else>
@@ -90,55 +125,55 @@ const products = [
             </header>
 
             <!-- Hero Section -->
-            <div class="relative flex flex-col md:flex-row min-h-[400px] items-center mt-8 md:mt-0">
+            <div class="relative flex flex-col items-center justify-center min-h-[100px] mt-2 md:mt-0 pt-2">
                 <!-- Text Content -->
-                <div class="z-10 px-4 sm:px-6 md:ml-16 max-w-xl text-center md:text-left mb-12 md:mb-0">
-                    <h1 class="mb-4 text-4xl sm:text-5xl md:text-6xl font-bold leading-tight tracking-tighter">
-                        CARRY<br />
-                        the <span class="font-serif italic">MERRY</span>
-                    </h1>
-
+                <div class="z-10 px-2 sm:px-6 max-w-lg text-center">
+                    <!-- Image -->
+                    <img src="/images/CARRY THE MERRY.png" alt="Carry The Merry" class="mx-auto mb-6">
+            
+                    <!-- Button -->
                     <Link :href="route('login')"
-                        class="mt-5 rounded-full border-2 border-white px-6 py-2 sm:px-8 sm:py-3 font-semibold uppercase tracking-wider transition hover:bg-white hover:text-[#2D5522]">
-                    Order Now
+                        class="rounded-full border-2 border-white px-6 py-2 sm:px-8 sm:py-3 font-semibold uppercase tracking-wider transition hover:bg-white hover:text-[#2D5522]">
+                        Order Now
                     </Link>
-
-
-                </div>
-
-                <!-- Product Display -->
-                <div
-                    class="w-full md:w-2/3 flex flex-col md:flex-row items-center justify-center md:justify-end space-y-8 md:space-y-0 md:space-x-4 px-4 sm:px-6 md:pr-6">
-                    <div v-for="(product, index) in products" :key="product.name"
-                        class="text-center transform w-full sm:w-2/3 md:w-1/3 max-w-xs" :class="{
-                            'md:translate-y-16': index === 0,
-                            'md:-translate-y-16': index === 2
-                        }">
-                        <div class="relative mb-2">
-                            <img :src="product.image" :alt="product.name"
-                                class="h-48 sm:h-64 w-auto object-contain mx-auto" />
-                            <span
-                                class="absolute top-0 left-1/2 md:left-0 transform -translate-x-1/2 md:translate-x-0 inline-block rounded-full bg-yellow-400 px-2 py-1 text-xs font-semibold text-[#2D5522]">NEW!</span>
-                        </div>
-                        <h3 class="mt-2 text-lg font-bold">{{ product.name }}</h3>
-                        <p class="mt-1 text-sm text-white/80">{{ product.description }}</p>
-                    </div>
-                </div>
-
-                <!-- Promotional Text -->
-                <div
-                    class="absolute left-1/2 md:left-auto md:right-1/3 top-1/2 transform -translate-x-1/2 md:translate-x-0 -translate-y-1/2 rotate-[-15deg] mt-8 md:mt-0">
-                    <h2 class="text-3xl md:text-4xl font-bold text-yellow-400 drop-shadow-lg whitespace-nowrap">UP TO
-                        50% OFF!!</h2>
-                </div>
-
-                <!-- Decorative Elements -->
-                <div class="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div class="absolute left-1/4 top-1/4 h-4 w-4 rotate-45 bg-white/10"></div>
-                    <div class="absolute right-1/3 top-1/2 h-2 w-2 rounded-full bg-white/20"></div>
-                    <div class="absolute bottom-1/4 left-1/2 h-3 w-3 rotate-12 bg-white/15"></div>
                 </div>
             </div>
+            
+        </div>
+        <div>
+            <div class="bg-white text-white">
+                <div class="text-center py-8">
+                    <h1 class="text-5xl font-bold text-black font-serif">HOLIDAY LIMITED EDITION</h1>
+                </div>
+                <div class="flex flex-wrap justify-center gap-4 px-3">
+                    <div v-for="product in products" :key="product.id" class="rounded-lg pt-4 text-center shadow-lg w-[150px]">
+                        <img :src="product.image" :alt="product.name" class="h-40 w-auto mx-auto mb-2" />
+                        <h2 class="text-xs text-black font-bold">{{ product.name }}</h2>
+                        <p class="text-xs text-black mb-2 font-semibold">₱{{ product.price }}</p>
+                        <button :href="route('login')" class="px-7 py-1 mb-4 text-white bg-[#2D5522] font-bold text-sm hover:bg-yellow-300 hover:text-black transition-all duration-300 ease-in-out rounded-b-lg">ADD TO CART</button>
+                    </div>
+                </div>
+            </div>        
+        </div>
+        <div>
+            <div class="bg-[#c7c2b7] min-h-screen text-white pt-10 md:px-10">
+                <div>
+                    <h1 class="text-lg md:ms-20 font-bold text-black font-serif">BARISTA PICKS</h1>
+                </div>
+                <div class="flex flex-wrap justify-center gap-4 px-3">
+                    <div v-for="(product) in latte.slice(0, 4)" :key="product.id" class="rounded-lg pt-4 text-center shadow-lg w-[150px]">
+                        <img :src="product.image" :alt="product.name" class="h-40 w-auto mx-auto mb-2" />
+                        <h2 class="text-xs text-black font-bold">{{ product.name }}</h2>
+                        <p class="text-xs text-black mb-2 font-semibold">₱{{ product.price }}</p>
+                        <button :href="route('login')" class="px-7 py-1 mb-4 bg-black text-white font-bold text-sm hover:bg-yellow-300 hover:text-black transition-all duration-300 ease-in-out rounded-b-lg">ADD TO CART</button>
+                    </div>
+                    <div class="flex justify-center mt-10">
+                        <Link :href="route('menu')" class="inline-flex items-center">
+                            <i class="text-black font-bold underline text-sm hover:text-white transition-all duration-200 ease-in-out mb-10">SEE MORE &rarr;</i>
+                        </Link>
+                    </div>                    
+                </div>
+            </div>        
         </div>
     </div>
 </template>

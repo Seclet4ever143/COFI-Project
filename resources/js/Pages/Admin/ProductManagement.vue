@@ -7,7 +7,7 @@
             class="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 transition-colors duration-300">
             <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                 <div class="px-4 py-6 sm:px-0">
-                    <div class="flex justify-between items-center mb-6">
+                    <div class="flex justify-center items-center mb-6">
                         <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white">
                             <span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
                                 Product Management
@@ -42,101 +42,124 @@
                     </div>
 
 
-                   <!-- Add Product Button -->
-          <button @click="openAddModal"
-            class="group mb-6 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out transform hover:scale-105 dark:bg-indigo-500 dark:hover:bg-indigo-600">
-            <PlusIcon class="h-5 w-5 mr-2 transition-transform duration-300 ease-in-out transform group-hover:rotate-180" />
-            Add New Product
-          </button>
+
+
+                    <!-- Add Product Button -->
+                    <button @click="openAddModal"
+                        class="group mb-6 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out transform hover:scale-105 dark:bg-indigo-500 dark:hover:bg-indigo-600">
+                        <PlusIcon
+                            class="h-5 w-5 mr-2 transition-transform duration-300 ease-in-out transform group-hover:rotate-180" />
+                        Add New Product
+                    </button>
 
                     <!-- Error Messages -->
-          <transition-group name="fade" tag="div">
-            <div v-for="error in errors" :key="error"
-              class="rounded-md bg-red-50 dark:bg-red-900 p-4 mb-4 shadow-md">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <XCircleIcon class="h-5 w-5 text-red-400 dark:text-red-300" />
-                </div>
-                <div class="ml-3">
-                  <h3 class="text-sm font-medium text-red-800 dark:text-red-200">{{ error }}</h3>
-                </div>
-              </div>
-            </div>
-          </transition-group>
+                    <transition-group name="fade" tag="div">
+                        <div v-for="error in errors" :key="error"
+                            class="rounded-md bg-red-50 dark:bg-red-900 p-4 mb-4 shadow-md">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <XCircleIcon class="h-5 w-5 text-red-400 dark:text-red-300" />
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-red-800 dark:text-red-200">{{ error }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </transition-group>
 
                     <!-- Success Message -->
-          <transition-group name="fade" tag="div">
-            <div v-if="successMessage" class="rounded-md bg-green-50 dark:bg-green-900 p-4 mb-4 shadow-md">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <CheckCircleIcon class="h-5 w-5 text-green-400 dark:text-green-300" />
-                </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-green-800 dark:text-green-200">{{ successMessage }}</p>
-                </div>
-              </div>
-            </div>
-          </transition-group>
+                    <transition-group name="fade" tag="div">
+                        <div v-if="successMessage" class="rounded-md bg-green-50 dark:bg-green-900 p-4 mb-4 shadow-md">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <CheckCircleIcon class="h-5 w-5 text-green-400 dark:text-green-300" />
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-green-800 dark:text-green-200">{{ successMessage
+                                        }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </transition-group>
 
-          <!-- Product Categories -->
-          <div v-for="(productsByCategory, categoryName) in groupedProducts" :key="categoryName" class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-              <span class="bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-3 py-1 rounded-full text-sm mr-3">
-                {{ productsByCategory.length }}
-              </span>
-              {{ categoryName }}
-            </h2>
+                    <!-- No products message -->
+                    <div v-if="!products || products.length === 0"
+                        class="text-center text-gray-500 bg-slate-300 p-8 rounded-lg shadow-md">
 
-            <div v-if="productsByCategory.length"
-              class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
-              <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
-                <li v-for="product in productsByCategory" :key="product.id"
-                  class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                  <div class="px-4 py-4 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                    <div class="flex items-center mb-2 sm:mb-0">
-                      <img :src="`/storage/${product.image}`" :alt="product.name"
-                        class="h-16 w-16 rounded-lg object-cover mr-4 shadow-md">
-                      <div>
-                        <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ product.name }}</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Price: ₱ {{ product.price }}</p>
-                      </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <p class="text-xl font-semibold">No products found.</p>
+                        <p class="mt-2">Your product list will appear here once you add products.</p>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-5 sm:space-y-0 sm:space-x-20 space-x-32 mr-12">
-                      <span 
-                        :class="[product.availability ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', 'px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full']">
-                        {{ product.availability ? 'Available' : 'Not Available' }}
-                      </span>
-                      <p class="text-sm text-gray-500 dark:text-gray-400">Qty: {{ product.qty }}</p>
-                      <div class="flex space-x-5 ">
-                        <button @click="openQuickEditModal(product)"
-                          class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 transition-colors duration-200">
-                          <PencilIcon class="h-5 w-5" />
-                        </button>
-                        <button @click="deleteProduct(product.id)"
-                          class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-200">
-                          <TrashIcon class="h-5 w-5" />
-                        </button>
-                      </div>
-                    </div>
+                    <!-- Product Categories -->
+                    <div v-for="(productsByCategory, categoryName) in groupedProducts" :key="categoryName" class="mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                            <span
+                                class="bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-3 py-1 rounded-full text-sm mr-3">
+                                {{ productsByCategory.length }}
+                            </span>
+                            {{ categoryName }}
+                        </h2>
 
-                  </div>
-                </li>
-              </ul>
+                        <div v-if="productsByCategory.length"
+                            class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+                            <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <li v-for="product in productsByCategory" :key="product.id"
+                                    class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                                    <div
+                                        class="px-4 py-4 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                                        <div class="flex items-center mb-2 sm:mb-0">
+                                            <img :src="`/storage/${product.image}`" :alt="product.name"
+                                                class="h-16 w-16 rounded-lg object-cover mr-4 shadow-md">
+                                            <div>
+                                                <p class="text-lg font-semibold text-gray-900 dark:text-white">{{
+                                                    product.name }}</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">Price: ₱ {{
+                                                    product.price }}</p>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            class="flex flex-col sm:flex-row items-start sm:items-center space-y-5 sm:space-y-0 sm:space-x-20 space-x-32 mr-12">
+                                            <span
+                                                :class="[product.availability ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', 'px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full']">
+                                                {{ product.availability ? 'Available' : 'Unavailable' }}
+                                            </span>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Qty: {{ product.qty }}
+                                            </p>
+                                            <div class="flex space-x-5 ">
+                                                <button @click="openQuickEditModal(product)"
+                                                    class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 transition-colors duration-200">
+                                                    <PencilIcon class="h-5 w-5" />
+                                                </button>
+                                                <button @click="deleteProduct(product.id)"
+                                                    class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-200">
+                                                    <TrashIcon class="h-5 w-5" />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <p v-else
+                            class="text-gray-500 dark:text-gray-400 text-center py-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                            No products found in this category.
+                        </p>
+                    </div>
+                </div>
             </div>
-            <p v-else
-              class="text-gray-500 dark:text-gray-400 text-center py-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-              No products found in this category.
-            </p>
-          </div>
         </div>
-      </div>
-    </div>
 
         <!-- Modal Component -->
         <transition name="modal">
-      <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-        aria-modal="true">
+            <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+                aria-modal="true">
                 <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
 
@@ -235,8 +258,8 @@
                                                             <PhotoIcon class="mx-auto h-12 w-12 text-gray-400" />
                                                             <div class="flex text-sm text-gray-600 dark:text-gray-400">
                                                                 <label for="file-upload"
-                                                                    class="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                                                                    <span class="ml-8">Upload a file</span>
+                                                                    class="relative mx-auto cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                                                    <span>Upload a file</span>
                                                                     <input @change="handleImageUpload" id="file-upload"
                                                                         name="file-upload" type="file" class="sr-only"
                                                                         accept="image/*">
@@ -286,8 +309,8 @@
 
         <!-- Quick Edit Modal -->
         <transition name="modal">
-      <div v-if="showQuickEditModal" class="fixed z-10 inset-0 overflow-y-auto  border border-black" aria-labelledby="modal-title"
-        role="dialog" aria-modal="true">
+            <div v-if="showQuickEditModal" class="fixed z-10 inset-0 overflow-y-auto  border border-black"
+                aria-labelledby="modal-title" role="dialog" aria-modal="true">
                 <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
                     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -372,16 +395,17 @@
 
                                             <!-- Availability -->
                                             <div>
-                                                <label for="quick-edit-availability"
+                                                <label for="availability"
                                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Availability</label>
-                                                <select v-model="quickEditForm.availability"
-                                                    id="quick-edit-availability" name="quick-edit-availability"
-                                                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                                    required>
+                                                <select v-model="quickEditForm.availability" id="availability"
+                                                    name="availability"
+                                                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                                     <option :value="true">Available</option>
                                                     <option :value="false">Unavailable</option>
                                                 </select>
+
                                             </div>
+
                                         </div>
 
                                         <!-- Buttons -->
@@ -466,20 +490,20 @@ const form = useForm({
     category_id: '',
     description: '',
     image: null,
-    availability: true,
-    //updated_by: null,
+    availability: '',
+    updated_by: null,
 });
 
 const quickEditForm = useForm({
     id: null,
     name: '',
-    price: '',
-    qty: '',
+    price: 0,
+    qty: 0,
     category_id: '',
     description: '',
     image: null,
-    availability: true,
-    //updated_by: null,
+    availability: '',
+    updated_by: null,
 });
 
 const dashboardStats = computed(() => [
@@ -521,13 +545,13 @@ const fetchProducts = async () => {
 
 const openAddModal = () => {
     form.reset();
-    form.availability = true;
     isEditing.value = false;
     errors.value = [];
     showModal.value = true;
 };
 
 const openQuickEditModal = (product) => {
+    form.reset();
     quickEditForm.reset();
     quickEditForm.id = product.id;
     quickEditForm.name = product.name;
@@ -536,6 +560,7 @@ const openQuickEditModal = (product) => {
     quickEditForm.category_id = product.category_id;
     quickEditForm.description = product.description;
     quickEditForm.availability = product.availability;
+
     showQuickEditModal.value = true;
 };
 
@@ -572,6 +597,7 @@ const updateProduct = () => {
 };
 
 const updateQuickEdit = () => {
+    console.log('Sending availability:', quickEditForm.availability); // Debugging log
     quickEditForm.put(route('products.update', quickEditForm.id), {
         preserveScroll: true,
         preserveState: true,
@@ -586,6 +612,7 @@ const updateQuickEdit = () => {
         },
     });
 };
+
 
 const deleteProduct = async (id) => {
     if (!confirm('Are you sure you want to delete this product?')) return;

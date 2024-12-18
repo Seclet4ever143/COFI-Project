@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StaffController;
 use Illuminate\Support\Facades\Route;
@@ -31,16 +32,24 @@ Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallb
 
 Route::middleware(['auth', 'setDB'])->group(function () {
 
+    //Route::get('/menu', [AdminController::class, 'viewWelcome'])->name('menu');
+    DB::statement("SET myapp.current_user_id = ?", [auth()->id()]);
+
+
+
     Route::get('/dashboard', function () {
         return match (Auth::user()->role_id) {
             1 => Inertia::render('Admin/AdminDashboard'),
             2 => Inertia::render('Staff/StaffDashboard'),
-            3 => Inertia::render('Customer/CustomerDashboard'),
+            3 => redirect()->route('dashboard'),
             default => abort(403),
         };
-    })->name('dashboard');
+    })->name('dash-board');
+
 
     Route::get('/user', [AdminController::class, 'users'])->name('user');
+
+
 
     // Admin Controller
     Route::middleware('admin')->group(function () {
@@ -65,6 +74,9 @@ Route::middleware(['auth', 'setDB'])->group(function () {
         Route::get('Admin/Orders/History', [AdminController::class, 'getOrderHistory'])->name('orders.history');
         Route::delete('Admin/Orders/{id}', [AdminController::class, 'deleteOrder'])->name('orders.delete');
 
+        Route::get('/activity-logs', [AdminController::class, 'indexLogs'])->name('activity_logs.index'); // Get all logs
+        Route::get('/activity-logs/{id}', [AdminController::class, 'showLogs'])->name('activity_logs.show'); // Get a specific log
+
     });
 
 
@@ -79,7 +91,24 @@ Route::middleware(['auth', 'setDB'])->group(function () {
         Route::put('/staff/orders/{order}', [StaffController::class, 'updateOrder'])->name('staff.orders.update');
         Route::delete('/staff/orders/{order}', [StaffController::class, 'destroyOrder'])->name('staff.orders.destroy');
     });
-    
+
+
+    Route::middleware('customer')->group(function (){
+        
+        Route::get('Customer/Contact', [CustomerController::class, 'contact'])->name('contact');
+        Route::get('Customer/Menu', [CustomerController::class, 'index'])->name('menu');
+        Route::get('/Home', [CustomerController::class, 'display'])->name('dashboard');
+        Route::get('/search', [CustomerController::class, 'search'])->name('search');
+
+        Route::post('/cart/add', [CustomerController::class, 'addToCart'])->name('cart.add');
+        Route::get('/cart', [CustomerController::class, 'getCartsWithProducts'])->name('cart');
+        Route::delete('/cart/{id}', [CustomerController::class, 'destroy'])->name('cart.destroy');
+        Route::put('/cart/{id}', [CustomerController::class, 'update']);
+        
+        Route::post('/transactions', [CustomerController::class, 'submitPayment'])->name('transactions');
+        Route::get('/transactions/{id}', [CustomerController::class, 'destroyTransaction'])->name('transaction.destroy');
+        Route::get('/Customer/Transactions', [CustomerController::class, 'indexTransaction'])->name('transactions.page');
+    });
 });
 
 require __DIR__ . '/auth.php';

@@ -17,7 +17,7 @@ class StaffMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::check() || Auth::user()->role_id !== 2) {
-            return redirect()->route('dashboard')->with('error', 'You do not have permission to access this page.');
+            abort(403, 'Unauthorized');       
         }
 
         return $next($request);

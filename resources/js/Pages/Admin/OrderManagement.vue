@@ -1,464 +1,519 @@
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-import { Head, useForm } from '@inertiajs/vue3';
-import AdminAuthenticatedLayout from '@/Layouts/AdminAuthenticatedLayout.vue';
-import axios from 'axios';
-
-const showAcceptModal = ref(false);
-const showEditModal = ref(false);
-const showDeleteModal = ref(false);
-const selectedOrder = ref(null);
-
-const props = defineProps({
-    orders: {
-        type: Array,
-        default: () => []
-    }
-});
-
-const orders = ref(props.orders || []);
-
-const searchQuery = ref('');
-const currentPage = ref(1);
-const itemsPerPage = 10;
-const sortBy = ref('created_at');
-const sortDesc = ref(true);
-
-const filteredOrders = computed(() => {
-    if (!orders.value) return [];
-    return orders.value.filter(order =>
-        order.customer_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        order.id.toString().includes(searchQuery.value)
-    );
-});
-
-const sortedOrders = computed(() => {
-    return [...filteredOrders.value].sort((a, b) => {
-        let modifier = sortDesc.value ? 1 : -1;
-        if (a[sortBy.value] < b[sortBy.value]) return -1 * modifier;
-        if (a[sortBy.value] > b[sortBy.value]) return 1 * modifier;
-        return 0;
-    });
-});
-
-const paginatedOrders = computed(() => {
-    const startIndex = (currentPage.value - 1) * itemsPerPage;
-    return sortedOrders.value.slice(startIndex, startIndex + itemsPerPage);
-});
-
-const totalPages = computed(() => Math.ceil(sortedOrders.value.length / itemsPerPage));
-
-const toggleSort = (column) => {
-    if (sortBy.value === column) {
-        sortDesc.value = !sortDesc.value;
-    } else {
-        sortBy.value = column;
-        sortDesc.value = true;
-    }
-};
-
-const statusColor = (order) => {
-    switch (order.toLowerCase()) {
-        case 'completed': return 'bg-green-100 text-green-800';
-        case 'processing': return 'bg-blue-100 text-blue-800';
-        case 'pending': return 'bg-yellow-100 text-yellow-800';
-        case 'accepted': return 'bg-green-100 text-green-800';
-        case 'declined': return 'bg-red-100 text-red-800';
-        default: return 'bg-gray-100 text-gray-800';
-    }
-};
-
-const totalRevenue = computed(() => {
-    return filteredOrders.value.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
-});
-
-const averageOrderValue = computed(() => {
-    return (totalRevenue.value / filteredOrders.value.length);
-});
-
-const form = useForm({
-    status: ''
-});
-
-const updateOrderStatus = (orderId, newStatus) => {
-    form.status = newStatus;
-    form.put(route('orders.update', orderId), {
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: () => {
-            const order = orders.value.find(o => o.id === orderId);
-            if (order) {
-                order.status = newStatus;
-            }
-            closeModals();
-        },
-    });
-};
-
-const openAcceptModal = (status) => {
-    selectedOrder.value = status;
-    showAcceptModal.value = true;
-};
-
-const openEditModal = (status) => {
-    selectedOrder.value = status;
-    showEditModal.value = true;
-};
-
-const openDeleteModal = (order) => {
-    selectedOrder.value = order;
-    showDeleteModal.value = true;
-};
-
-const closeModals = () => {
-    showAcceptModal.value = false;
-    showEditModal.value = false;
-    showDeleteModal.value = false;
-    selectedOrder.value = null;
-};
-
-const acceptOrder = () => {
-    if (selectedOrder.value) {
-        updateOrderStatus(selectedOrder.value.id, 'Accepted');
-        closeModals();
-    }
-};
-
-
-const deleteOrder = () => {
-    if (selectedOrder.value) {
-        form.delete(route('orders.delete', selectedOrder.value.id))
-            .then(() => {
-                orders.value = orders.value.filter(o => o.id !== selectedOrder.value.id);
-                closeModals();
-            })
-            .catch((error) => {
-                console.error('Error deleting order:', error);
-            });
-    }
-};
-</script>
-
 <template>
-
-    <Head title="Order Management" />
-
-    <AdminAuthenticatedLayout>
-        <div class="p-6 bg-gradient-to-br from-indigo-50 to-white shadow-lg rounded-lg">
-            <h2 class="text-3xl font-bold mb-6 text-gray-800">Order Management</h2>
-
-            <!-- Summary Section -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div class="bg-white p-4 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Orders</h3>
-                    <p class="text-2xl font-bold text-indigo-600">{{ filteredOrders.length }}</p>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Revenue</h3>
-                    <p class="text-2xl font-bold text-green-600">${{ totalRevenue }}</p>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Average Order Value</h3>
-                    <p class="text-2xl font-bold text-blue-600">${{ averageOrderValue }}</p>
-                </div>
-            </div>
-
-            <!-- Search and Filter Section -->
-            <div class="mb-4 flex items-center">
-                <div class="relative flex-grow">
-                    <input v-model="searchQuery" type="text" placeholder="Search orders..."
-                        class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </div>
-            </div>
-
-            <!-- Table Section -->
-            <div class="bg-white overflow-hidden shadow-xl rounded-lg">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th v-for="header in ['Order ID', 'Customer', 'Total', 'Status', 'Date', 'Actions']"
-                                :key="header" scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition duration-150 ease-in-out"
-                                @click="header !== 'Actions' && toggleSort(header.toLowerCase())">
-                                {{ header }}
-                                <span v-if="sortBy === header.toLowerCase() && header !== 'Actions'" class="ml-1">
-                                    <svg v-if="!sortDesc" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline"
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 15l7-7 7 7" />
-                                    </svg>
-                                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="order in paginatedOrders" :key="order.id"
-                            class="hover:bg-gray-50 transition duration-150 ease-in-out">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ order.id }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ order.customer_name }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                ${{ parseFloat(order.total_amount).toFixed(2) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <span
-                                    :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', statusColor(order.status)]">
-                                    {{ order.status }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ new Date(order.created_at).toLocaleDateString() }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button @click="openAcceptModal(order)" class="text-green-600 hover:text-green-900 mr-2"
-                                    :disabled="order.status !== 'Pending'">
-                                    Accept
-                                </button>
-                                <button @click="openEditModal(order)" class="text-blue-600 hover:text-blue-900 mr-2">
-                                    Edit
-                                </button>
-                                <button @click="openDeleteModal(order)" class="text-red-600 hover:text-red-900">
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            <div class="mt-4 flex items-center justify-between">
-                <div class="flex-1 flex justify-between sm:hidden">
-                    <button @click="currentPage--" :disabled="currentPage === 1"
-                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                        Previous
-                    </button>
-                    <button @click="currentPage++" :disabled="currentPage === totalPages"
-                        class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                        Next
-                    </button>
-                </div>
-                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-sm text-gray-700">
-                            Showing
-                            <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
-                            to
-                            <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, sortedOrders.length)
-                                }}</span>
-                            of
-                            <span class="font-medium">{{ sortedOrders.length }}</span>
-                            results
-                        </p>
-                    </div>
-                    <div>
-                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                            <button @click="currentPage--" :disabled="currentPage === 1"
-                                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <span class="sr-only">Previous</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                            <button v-for="page in totalPages" :key="page" @click="currentPage = page" :class="[
-                                currentPage === page ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-                                'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
-                            ]">
-                                {{ page }}
-                            </button>
-                            <button @click="currentPage++" :disabled="currentPage === totalPages"
-                                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <span class="sr-only">Next</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </nav>
-                    </div>
-                </div>
-            </div>
+    <div :style="styles.container">
+      <header :style="styles.header">
+        <div :style="styles.headerContent">
+          <h1 :style="styles.headerTitle">Luxury Order Management</h1>
         </div>
-
-        <div class="mt-8 bg-white shadow-lg rounded-lg overflow-hidden">
-            <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Order History</h3>
+      </header>
+  
+      <main :style="styles.main">
+        <div :style="styles.cardContainer">
+          <div v-for="(card, index) in dashboardCards" :key="index" :style="styles.card">
+            <div :style="styles.cardIcon">
+              <span v-html="card.icon"></span>
             </div>
-            <div class="border-t border-gray-200">
-                <ul role="list" class="divide-y divide-gray-200">
-                    <li v-for="order in orders" :key="order.id" class="px-4 py-4 sm:px-6">
-                        <div class="flex items-center justify-between">
-                            <p class="text-sm font-medium text-indigo-600 truncate">
-                                Order #{{ order.id }}
-                            </p>
-                            <div class="ml-2 flex-shrink-0 flex">
-                                <p :class="[
-                                    'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
-                                    order.status.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                                ]">
-                                    {{ order.status }}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="mt-2 sm:flex sm:justify-between">
-                            <div class="sm:flex">
-                                <p class="flex items-center text-sm text-gray-500">
-                                    Total: ${{ order.total_amount }}
-                                </p>
-                            </div>
-                            <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                                <p>
-                                    {{ new Date(order.created_at).toLocaleDateString() }}
-                                </p>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
+            <div :style="styles.cardContent">
+              <div :style="styles.cardTitle">{{ card.title }}</div>
+              <div :style="styles.cardValue">{{ card.value }}</div>
             </div>
+          </div>
         </div>
-
-    </AdminAuthenticatedLayout>
-
-    <!-- Accept Modal -->
-    <div v-if="showAcceptModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-        aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div
-                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                        Accept Order
-                    </h3>
-                    <div class="mt-2">
-                        <p class="text-sm text-gray-500">
-                            Are you sure you want to accept this order?
-                        </p>
-                    </div>
-                </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button @click="acceptOrder" type="button"
-                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
-                        Accept
-                    </button>
-                    <button @click="closeModals" type="button"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                        Cancel
-                    </button>
-                </div>
+  
+        <div :style="styles.tableContainer">
+          <div :style="styles.tableHeader">
+            <h2 :style="styles.sectionTitle">Recent Orders</h2>
+            <div :style="styles.searchContainer">
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Search orders..."
+                :style="styles.searchInput"
+              />
             </div>
+          </div>
+  
+          <table :style="styles.table">
+            <thead>
+              <tr>
+                <th v-for="header in tableHeaders" :key="header" 
+                    :style="styles.tableHeaderCell"
+                    @click="sortTable(header)">
+                  {{ header }}
+                  <span v-if="sortColumn === header.toLowerCase()">
+                    {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="order in paginatedOrders" :key="order.id" :style="styles.tableRow">
+                <td :style="styles.tableCell">{{ order.id }}</td>
+                <td :style="styles.tableCell">{{ order.customer_name }}</td>
+                <td :style="styles.tableCell">{{ formatCurrency(order.total_amount) }}</td>
+                <td :style="styles.tableCell">
+                  <span :style="getStatusStyle(order.status)">
+                    {{ order.status }}
+                  </span>
+                </td>
+                <td :style="styles.tableCell">{{ formatDate(order.created_at) }}</td>
+                <td :style="styles.tableCell">
+                  <button @click="openModal('view', order)" :style="styles.actionButton">View</button>
+                  <button @click="openModal('edit', order)" :style="styles.actionButton">Edit</button>
+                  <button @click="openModal('delete', order)" :style="styles.actionButton">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+  
+          <div :style="styles.pagination">
+            <div>
+              <p :style="styles.paginationText">
+                Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredOrders.length) }} of {{ filteredOrders.length }} results
+              </p>
+            </div>
+            <div :style="styles.paginationButtons">
+              <button
+                v-for="page in totalPages"
+                :key="page"
+                @click="currentPage = page"
+                :style="currentPage === page ? styles.activePageButton : styles.pageButton"
+              >
+                {{ page }}
+              </button>
+            </div>
+          </div>
         </div>
+      </main>
+  
+      <div v-if="showModal" :style="styles.modalOverlay">
+        <div :style="styles.modalContent">
+          <h3 :style="styles.modalTitle">{{ modalTitle }}</h3>
+          <div v-if="modalType === 'view'">
+            <p><strong>Order ID:</strong> {{ selectedOrder.id }}</p>
+            <p><strong>Customer:</strong> {{ selectedOrder.customer_name }}</p>
+            <p><strong>Total Amount:</strong> {{ formatCurrency(selectedOrder.total_amount) }}</p>
+            <p><strong>Status:</strong> {{ selectedOrder.status }}</p>
+            <p><strong>Date:</strong> {{ formatDate(selectedOrder.created_at) }}</p>
+          </div>
+          <div v-else-if="modalType === 'edit'">
+            <label :style="styles.label">
+              <span>Status</span>
+              <select
+                v-model="selectedOrder.status"
+                :style="styles.select"
+              >
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="completed">Completed</option>
+              </select>
+            </label>
+          </div>
+          <div v-else-if="modalType === 'delete'">
+            <p :style="styles.modalText">Are you sure you want to delete this order? This action cannot be undone.</p>
+          </div>
+          <div :style="styles.modalActions">
+            <button v-if="modalType === 'edit'" @click="updateOrder" :style="styles.primaryButton">
+              Save Changes
+            </button>
+            <button v-if="modalType === 'delete'" @click="deleteOrder" :style="styles.dangerButton">
+              Delete
+            </button>
+            <button @click="closeModal" :style="styles.secondaryButton">
+              {{ modalType === 'view' ? 'Close' : 'Cancel' }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- Edit Modal -->
-    <div v-if="showEditModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-        aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div
-                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                        Edit Order
-                    </h3>
-                    <div class="mt-2">
-                        <!-- Form for editing order details -->
-                        <form @submit.prevent="updateOrder">
-                            <div class="mb-4">
-                                <label for="status" class="block text-sm font-medium text-gray-700">Order Status</label>
-                                <select v-model="form.status" id="status"
-                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                    required>
-                                    <option value="pending">Pending</option>
-                                    <option value="processing">Processing</option>
-                                    <option value="completed">Completed</option>
-                                </select>
-                            </div>
-
-                            <!-- Add any other fields you need to edit -->
-                        </form>
-                    </div>
-                </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button @click="updateOrderStatus(selectedOrder.id, form.status)" type="button"
-                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
-                        Save Changes
-                    </button>
-                    <button @click="closeModals" type="button"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
-    <!-- Delete Modal -->
-    <div v-if="showDeleteModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-        aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div
-                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                        Delete Order
-                    </h3>
-                    <div class="mt-2">
-                        <p class="text-sm text-gray-500">
-                            Are you sure you want to delete this order? This action cannot be undone.
-                        </p>
-                    </div>
-                </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button @click="deleteOrder" type="button"
-                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
-                        Delete
-                    </button>
-                    <button @click="closeModals" type="button"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
-
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-body {
-    font-family: 'Inter', sans-serif;
-}
-
-.transition {
-    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-    transition-duration: 150ms;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-</style>
+  </template>
+  
+  <script>
+  export default {
+    data() {
+      return {
+        orders: [
+          { id: 1, customer_name: 'John Doe', total_amount: 5000000, status: 'completed', created_at: '2023-05-15T10:00:00Z' },
+          { id: 2, customer_name: 'Jane Smith', total_amount: 7500000, status: 'processing', created_at: '2023-05-14T14:30:00Z' },
+          { id: 3, customer_name: 'Robert Johnson', total_amount: 10000000, status: 'pending', created_at: '2023-05-13T09:15:00Z' },
+        ],
+        searchQuery: '',
+        currentPage: 1,
+        itemsPerPage: 10,
+        sortColumn: 'created_at',
+        sortDirection: 'desc',
+        showModal: false,
+        modalType: '',
+        selectedOrder: null,
+        tableHeaders: ['Order ID', 'Customer', 'Total', 'Status', 'Date', 'Actions'],
+        styles: {
+          container: {
+            minHeight: '100vh',
+            background: 'linear-gradient(to bottom right, #111827, #000000)',
+            color: '#ffffff',
+            fontFamily: 'Arial, sans-serif',
+          },
+          header: {
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(10px)',
+            borderBottom: '1px solid #374151',
+          },
+          headerContent: {
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '1.5rem 1rem',
+          },
+          headerTitle: {
+            fontSize: '1.875rem',
+            fontWeight: 'bold',
+            background: 'linear-gradient(to right, #c084fc, #db2777)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          },
+          main: {
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '2rem 1rem',
+          },
+          cardContainer: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '1.5rem',
+            marginBottom: '2rem',
+          },
+          card: {
+            background: '#1f2937',
+            borderRadius: '0.5rem',
+            padding: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+          },
+          cardIcon: {
+            background: '#7c3aed',
+            borderRadius: '0.375rem',
+            padding: '0.75rem',
+            marginRight: '1rem',
+          },
+          cardContent: {
+            flex: '1',
+          },
+          cardTitle: {
+            fontSize: '0.875rem',
+            fontWeight: 'medium',
+            color: '#9ca3af',
+            marginBottom: '0.25rem',
+          },
+          cardValue: {
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+          },
+          chartContainer: {
+            background: '#1f2937',
+            borderRadius: '0.5rem',
+            padding: '1.5rem',
+            marginBottom: '2rem',
+          },
+          sectionTitle: {
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            marginBottom: '1rem',
+          },
+          chart: {
+            height: '16rem',
+            background: '#374151',
+            borderRadius: '0.375rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+          chartPlaceholder: {
+            color: '#9ca3af',
+          },
+          tableContainer: {
+            background: '#1f2937',
+            borderRadius: '0.5rem',
+            padding: '1.5rem',
+          },
+          tableHeader: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.5rem',
+          },
+          searchContainer: {
+            position: 'relative',
+          },
+          searchInput: {
+            background: '#374151',
+            color: '#ffffff',
+            borderRadius: '9999px',
+            padding: '0.5rem 1rem',
+            paddingRight: '2.5rem',
+            border: 'none',
+            outline: 'none',
+          },
+          table: {
+            width: '100%',
+            borderCollapse: 'separate',
+            borderSpacing: '0 0.5rem',
+          },
+          tableHeaderCell: {
+            textAlign: 'left',
+            padding: '0.75rem 1rem',
+            fontSize: '0.75rem',
+            fontWeight: 'medium',
+            textTransform: 'uppercase',
+            color: '#9ca3af',
+            cursor: 'pointer',
+          },
+          tableRow: {
+            background: '#374151',
+            transition: 'background-color 0.2s',
+          },
+          tableCell: {
+            padding: '1rem',
+            whiteSpace: 'nowrap',
+          },
+          actionButton: {
+            background: 'none',
+            border: 'none',
+            color: '#9ca3af',
+            cursor: 'pointer',
+            marginRight: '0.5rem',
+            transition: 'color 0.2s',
+          },
+          pagination: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '1.5rem',
+          },
+          paginationText: {
+            fontSize: '0.875rem',
+            color: '#9ca3af',
+          },
+          paginationButtons: {
+            display: 'flex',
+            gap: '0.5rem',
+          },
+          pageButton: {
+            background: '#374151',
+            color: '#9ca3af',
+            border: 'none',
+            borderRadius: '0.375rem',
+            padding: '0.5rem 0.75rem',
+            fontSize: '0.875rem',
+            fontWeight: 'medium',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+          },
+          activePageButton: {
+            background: '#7c3aed',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '0.375rem',
+            padding: '0.5rem 0.75rem',
+            fontSize: '0.875rem',
+            fontWeight: 'medium',
+            cursor: 'pointer',
+          },
+          modalOverlay: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+          modalContent: {
+            background: '#1f2937',
+            borderRadius: '0.5rem',
+            padding: '1.5rem',
+            maxWidth: '32rem',
+            width: '100%',
+          },
+          modalTitle: {
+            fontSize: '1.25rem',
+            fontWeight: 'bold',
+            marginBottom: '1rem',
+          },
+          modalText: {
+            marginBottom: '1rem',
+          },
+          modalActions: {
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '0.5rem',
+            marginTop: '1.5rem',
+          },
+          label: {
+            display: 'block',
+            marginBottom: '0.5rem',
+          },
+          select: {
+            width: '100%',
+            padding: '0.5rem',
+            borderRadius: '0.375rem',
+            background: '#374151',
+            color: '#ffffff',
+            border: '1px solid #4b5563',
+            marginTop: '0.25rem',
+          },
+          primaryButton: {
+            background: '#7c3aed',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '0.375rem',
+            padding: '0.5rem 1rem',
+            fontSize: '0.875rem',
+            fontWeight: 'medium',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+          },
+          secondaryButton: {
+            background: '#4b5563',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '0.375rem',
+            padding: '0.5rem 1rem',
+            fontSize: '0.875rem',
+            fontWeight: 'medium',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+          },
+          dangerButton: {
+            background: '#dc2626',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '0.375rem',
+            padding: '0.5rem 1rem',
+            fontSize: '0.875rem',
+            fontWeight: 'medium',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+          },
+        },
+      };
+    },
+    computed: {
+      filteredOrders() {
+        return this.orders.filter(order =>
+          order.customer_name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          order.id.toString().includes(this.searchQuery)
+        );
+      },
+      sortedOrders() {
+        return [...this.filteredOrders].sort((a, b) => {
+          const modifier = this.sortDirection === 'asc' ? 1 : -1;
+          if (typeof a[this.sortColumn] === 'string') {
+            return a[this.sortColumn].localeCompare(b[this.sortColumn]) * modifier;
+          }
+          return (a[this.sortColumn] - b[this.sortColumn]) * modifier;
+        });
+      },
+      paginatedOrders() {
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        return this.sortedOrders.slice(startIndex, startIndex + this.itemsPerPage);
+      },
+      totalPages() {
+        return Math.ceil(this.sortedOrders.length / this.itemsPerPage);
+      },
+      totalRevenue() {
+        return this.filteredOrders.reduce((sum, order) => sum + order.total_amount, 0);
+      },
+      averageOrderValue() {
+        const totalOrders = this.filteredOrders.length;
+        return totalOrders ? this.totalRevenue / totalOrders : 0;
+      },
+      dashboardCards() {
+        return [
+          { title: 'Total Orders', value: this.filteredOrders.length, icon: '📦' },
+          { title: 'Total Revenue', value: this.formatCurrency(this.totalRevenue), icon: '💰' },
+          { title: 'Average Order Value', value: this.formatCurrency(this.averageOrderValue), icon: '📊' },
+        ];
+      },
+      modalTitle() {
+        switch (this.modalType) {
+          case 'view': return 'Order Details';
+          case 'edit': return 'Edit Order';
+          case 'delete': return 'Delete Order';
+          default: return '';
+        }
+      },
+    },
+    methods: {
+      formatCurrency(value) {
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(value);
+      },
+      formatDate(dateString) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return new Date(dateString).toLocaleDateString('en-US', options);
+      },
+      sortTable(column) {
+        if (this.sortColumn === column.toLowerCase()) {
+          this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          this.sortColumn = column.toLowerCase();
+          this.sortDirection = 'asc';
+        }
+      },
+      openModal(type, order) {
+        this.modalType = type;
+        this.selectedOrder = { ...order };
+        this.showModal = true;
+      },
+      closeModal() {
+        this.showModal = false;
+        this.selectedOrder = null;
+      },
+      updateOrder() {
+        const index = this.orders.findIndex(o => o.id === this.selectedOrder.id);
+        if (index !== -1) {
+          this.orders[index] = { ...this.selectedOrder };
+        }
+        this.closeModal();
+      },
+      deleteOrder() {
+        this.orders = this.orders.filter(o => o.id !== this.selectedOrder.id);
+        this.closeModal();
+      },
+      getStatusStyle(status) {
+        let backgroundColor, color;
+        switch (status.toLowerCase()) {
+          case 'completed':
+            backgroundColor = '#10B981';
+            color = '#ECFDF5';
+            break;
+          case 'processing':
+            backgroundColor = '#3B82F6';
+            color = '#EFF6FF';
+            break;
+          case 'pending':
+            backgroundColor = '#F59E0B';
+            color = '#FFFBEB';
+            break;
+          default:
+            backgroundColor = '#6B7280';
+            color = '#F3F4F6';
+        }
+        return {
+          backgroundColor,
+          color,
+          padding: '0.25rem 0.5rem',
+          borderRadius: '9999px',
+          fontSize: '0.75rem',
+          fontWeight: 'medium',
+        };
+      },
+    },
+  };
+  </script>
+  
+  
