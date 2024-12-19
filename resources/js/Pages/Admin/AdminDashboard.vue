@@ -2,7 +2,7 @@
 
   <Head title="COFI - ADMIN DASHBOARD"/>
   <AdminAuthenticatedLayout>
-    <div class="py-12">
+    <div class="py-12 bg-slate-700 min-h-screen">
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
           <div class="p-6 bg-white border-b border-gray-200">
@@ -12,6 +12,8 @@
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                   <tr>
                     <th scope="col" class="py-3 px-6">ID</th>
+                    <th scope="col" class="py-3 px-6">Current User</th>
+                    <th scope="col" class="py-3 px-6">User ID</th>
                     <th scope="col" class="py-3 px-6">Action</th>
                     <th scope="col" class="py-3 px-6">Tablename</th>
                     <th scope="col" class="py-3 px-6">Timestamp</th>
@@ -21,6 +23,8 @@
                 <tbody>
                   <tr v-for="log in logs" :key="log.id" class="bg-white border-b hover:bg-gray-50">
                     <td class="py-4 px-6">{{ log.id }}</td>
+                    <td class="py-4 px-6">{{ log.current_users}}</td>
+                    <td class="py-4 px-6">{{ log.user_id}}</td>
                     <td class="py-4 px-6">{{ log.action_type }}</td>
                     <td class="py-4 px-6">{{ log.table_name }}</td>
                     <td class="py-4 px-6">{{ formatDate(log.created_at) }}</td>
@@ -45,6 +49,7 @@
             <h3 class="text-lg leading-6 font-medium text-gray-900">Log Details</h3>
             <div class="mt-2 px-7 py-3">
               <p class="text-sm text-gray-500"><strong>ID:</strong> {{ selectedLog.id }}</p>
+              <p class="text-sm text-gray-500"><strong>User:</strong> {{ selectedLog.current_users }}</p>
               <p class="text-sm text-gray-500"><strong>Action:</strong> {{ selectedLog.action_type }}</p>
               <p class="text-sm text-gray-500"><strong>Table:</strong> {{ selectedLog.table_name }}</p>
               <p class="text-sm text-gray-500"><strong>Timestamp:</strong> {{ formatDate(selectedLog.created_at) }}</p>
@@ -69,6 +74,7 @@
   import { useForm } from '@inertiajs/vue3';
   import { EyeIcon } from '@heroicons/vue/24/outline';
   import AdminAuthenticatedLayout from '@/Layouts/AdminAuthenticatedLayout.vue';
+  import { Head } from '@inertiajs/inertia-vue3';
   
   // State management
   const logs = ref([]);

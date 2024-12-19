@@ -17,30 +17,32 @@ class CustomerController extends Controller
     public function contact(){
         return Inertia::render('Customer/Contact');
     }
-    
-    public function index()
-    {
-        // Retrieve all products
-        $products = Product::all();
-        $category = Category::all();
-        // Return Inertia response, passing data to the Vue component
-        return Inertia::render('Customer/Menu', [
-            'products' => $products,
-            'category' => $category,
-        ]);
-    }
 
-    public function display()
+    public function customerDashboardDisplay()
     {
         // Retrieve all products
-        $products = Product::all();
-        $category = Category::all();
+        $prod = Product::all();
+        $cat = category::all();
         // Return Inertia response, passing data to the Vue component
         return Inertia::render('Customer/CustomerDashboard', [
-            'products' => $products,
-            'category' => $category,
+            'prod' => $prod,
+            'cat' => $cat,
         ]);
     }
+    
+   //kani nga function ang mag kuha sa product ug categories para ipasa didto sa Menu nga vue para ipang display ang products
+   public function menuDisplay()
+   {
+       // Retrieve all products
+       $products = Product::all();
+       $category = Category::all();
+       // Return Inertia response, passing data to the Vue component
+       return Inertia::render('Customer/Menu', [
+           'products' => $products,
+           'category' => $category,
+       ]);
+   }
+
 
     public function search(Request $request)
     {
@@ -51,7 +53,7 @@ class CustomerController extends Controller
     }
 
     public function addToCart(Request $request)
-    {
+    {       
         $validated = $request->validate([
             'id' => 'required|exists:products,id',
             'qty' => 'required|integer|min:1'
@@ -184,11 +186,12 @@ class CustomerController extends Controller
             $cartItems = DB::table('cart_items')
                 ->join('carts', 'cart_items.cart_id', '=', 'carts.id')
                 ->where('carts.user_id', $userId)
+                ->select('cart_items.*')
                 ->get();
 
-            if ($cartItems->isEmpty()) {
-                throw new \Exception('No items found in the cart for this user.');
-            }
+                if ($cartItems->isEmpty()) {
+                    throw new \Exception('No items found in the cart for this user.');
+                }                 
 
             $transactionId = DB::table('transactions')->insertGetId([
                 'user_id' => $userId,
@@ -207,6 +210,28 @@ class CustomerController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
+                $product = DB::table('products')
+                    ->where('id', $cartItem->product_id)
+                    ->first();
+
+                if (!$product) {
+                    throw new \Exception("Product not found for ID: {$cartItem->product_id}");
+                }
+
+                if ($product->qty < $cartItem->quantity) {
+                    throw new \Exception("Insufficient stock for product: {$product->name}");
+                }
+
+                $newQty = $product->qty - $cartItem->quantity;
+
+                // Update product quantity
+                DB::table('products')
+                    ->where('id', $cartItem->product_id)
+                    ->update([
+                        'qty' => $newQty,
+                        'availability' => $newQty > 0,
+                    ]);
             }
             // DB::table('transaction_items')->insert([
             //     'transaction_id' => $transactionId,
@@ -215,7 +240,10 @@ class CustomerController extends Controller
             //     'total_amount' => $transactionId->total_amount,
             // ]);
             // Insert the transaction record
+            // dd($cartItems);
 
+            // dd($products);
+            
             // Clear the user's cart
             DB::table('cart_items')
                 ->whereIn('cart_items.cart_id', function ($query) use ($userId) {
@@ -228,7 +256,7 @@ class CustomerController extends Controller
 
             DB::commit();
 
-            return Inertia::render('Customer/Cart');
+            return Inertia::location(route('cart'));
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -237,7 +265,11 @@ class CustomerController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
-    }
+    }   
+
+
+
+    
     public function indexTransaction()
     {
         $cartsWithProducts = DB::table('transaction_summary')
@@ -313,6 +345,17 @@ class CustomerController extends Controller
 
         return response()->json(['message' => 'Transaction updated successfully', 'transaction' => $transaction]);
     }
+
+       //kini nga function ang mag kuha sa among database view which is transaction_summery para e display niya sa page nga Transaction
+       public function transactionDisplay()
+       {
+           $cartsWithProducts = DB::table('transaction_summary')
+               ->where('user_id', Auth::id())
+               ->get();
+           return Inertia::render('Customer/Transactions', [
+               'transactions' => $cartsWithProducts,
+           ]);
+       }
 
     /**
      * Remove the specified transaction.

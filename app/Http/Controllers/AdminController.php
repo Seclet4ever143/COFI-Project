@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Redirect;
 
 class AdminController extends Controller
-{
+{   
 
     public function viewWelcome()
     {
@@ -30,6 +30,7 @@ class AdminController extends Controller
     }
     public function viewMenu()
     {
+        
         // Fetch data from the `products` table and group it by category
         $menuItems = DB::table('products')
             ->join('categories', 'products.category_id', '=', 'categories.id')
@@ -46,6 +47,7 @@ class AdminController extends Controller
 
     public function updateMenu(Request $request, $id)
     {
+        
         $request->validate([
             'price' => 'required|numeric|min:0',
             'qty' => 'required|integer|min:0',
@@ -66,7 +68,7 @@ class AdminController extends Controller
         }
 
         return redirect()->back()->withErrors('Failed to update menu item.');
-    }
+    }   
 
     public function deleteMenuProduct($id)
     {
@@ -133,7 +135,7 @@ class AdminController extends Controller
 
         return response()->json($users);
     }
-
+    
     public function updateUsers(Request $request, $id)
     {
         $validated = $request->validate([
@@ -157,14 +159,26 @@ class AdminController extends Controller
 
     public function destroyUsers($id)
     {
-        // Optionally, you can set updated_by to null in related products
-        DB::table('products')->where('updated_by', $id)->update(['updated_by' => null]);
+        try {
+            // Log before making any in
+            Log::info("Attempting to delete user with ID: $id");
     
-        // Now delete the user
-        DB::table('users')->where('id', $id)->delete();
+            // Update related products
+            $productsUpdated = DB::table('products')->where('updated_by', $id)->update(['updated_by' => null]);
+            Log::info("Updated products related to user $id: $productsUpdated");
     
-        return back()->with('message', 'Account deleted successfully!');
+            // Delete the user
+            $userDeleted = DB::table('users')->where('id', $id)->delete();
+            Log::info("Deleted user with ID: $id: $userDeleted");
+    
+            return back()->with('message', 'Account deleted successfully!');
+        } catch (\Exception $e) {
+            // Log the error message
+            Log::error("Error deleting user with ID: $id - " . $e->getMessage());
+            return back()->withErrors(['error' => 'Failed to delete account.']);
+        }
     }
+    
     
 
 
@@ -183,7 +197,7 @@ class AdminController extends Controller
             'products' => $products,
             'categories' => $categories,
         ]);
-    }
+    }   
 
     public function insertProducts(Request $request)
     {
@@ -304,7 +318,14 @@ class AdminController extends Controller
 
     public function viewOrder()
     {
-        return Inertia::render('Admin/OrderManagement');
+
+        $orders = DB::select('SELECT * FROM transaction_summary_admin');
+        $details = DB::select('SELECT * FROM order_products');
+        return Inertia::render('Admin/OrderManagement', [
+            'orders' => $orders,
+            'details' => $details,
+        ]);     
+       // return Inertia::render('Admin/OrderManagement');
     }
 
 
@@ -333,7 +354,7 @@ class AdminController extends Controller
     {
         $status = $request->input('status');
         
-        DB::table('orders')
+        DB::table('transactions')
             ->where('id', $id)
             ->update(['status' => $status]);
 
@@ -342,32 +363,72 @@ class AdminController extends Controller
 
     public function getOrderHistory()
     {
-        $orders = DB::table('order_summary')->get();
+        $orders = DB::select('SELECT * FROM transaction_summary_admin');
 
         return Inertia::render('Admin/OrderManagement', [
             'orders' => $orders,
         ]);
     }
 
+    public function deleteOrder($id)
+    {
+        // Check if the order exists
+        $order = DB::table('transactions')->where('id', $id)->first();
 
-public function deleteOrder($id)
-{
-    // Check if the order exists
-    $order = DB::table('orders')->where('id', $id)->first();
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
 
-    if (!$order) {
-        return response()->json(['message' => 'Order not found'], 404);
+        // Delete the order
+        DB::table('transactions')->where('id', $id)->delete();
+
+        return Inertia::location(route('ordermanagement'));
+
+        // Return a success response
     }
 
-    // Delete the order using raw DB query
-    DB::table('orders')->where('id', $id)->delete();
+    public function acceptOrder(Request $request){
+        
+        $validated = $request->validate([
+            'id' => 'required|numeric'
+        ]);
 
-    // Return a success response
-    return response()->json(['message' => 'Order deleted successfully']);
-}
+        $items = DB::table('transactions')
+            ->where('id', $validated['id'])
+            ->update(['status' => 'Processing']);
+
+        return Inertia::location('/Admin/OrderManagement');
+    }
+
+    public function shipOrder(Request $request){
+        
+        $validated = $request->validate([
+            'id' => 'required|numeric'
+        ]);
+
+        $items = DB::table('transactions')
+            ->where('id', $validated['id'])
+            ->update(['status' => 'Shipped']);
+
+    return Inertia::location('/Admin/OrderManagement');
+    }
+
+
+    public function completeOrder(Request $request){
+        
+        $validated = $request->validate([
+            'id' => 'required|numeric'
+        ]);
+
+        $items = DB::table('transactions')
+            ->where('id', $validated['id'])
+            ->update(['status' => 'Completed']);
+
+    return Inertia::location('/Admin/OrderManagement');
+    }
 
 public function indexLogs()
-    {
+{                       
         // Retrieve all activity logs ordered by creation date (most recent first)
         $activityLogs = ActivityLogs::orderBy('created_at', 'desc')->get();
 

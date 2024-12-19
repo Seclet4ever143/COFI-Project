@@ -51,29 +51,38 @@ class StaffController extends Controller
 }
 
 
-public function viewOrder()
+public function viewTransactions()
 {
-    // Query the 'order_summary' view to fetch summarized order data
-    $orders = DB::table('order_summary')->get('*');
+    // Query the 'transaction_summary_with_items' view to fetch transaction data with items
+    $transactions = DB::table('transaction_summary_with_items')->get();
 
-    // Transform the data for the frontend (optional for cleaner output)
-    $orders = $orders->map(function ($order) {
+    // Group the transaction items by transaction_id for easier frontend handling
+    $groupedTransactions = $transactions->groupBy('transaction_id')->map(function ($items, $transactionId) {
+        // Extract transaction-level data from the first item (common across grouped items)
+        $firstItem = $items->first();
+
         return [
-            'id' => $order->order_id,
-            'customer_name' => $order->customer_name,
-            'total_amount' => $order->total, // Alias from the view
-            'status' => $order->status,
-            'created_at' => $order->order_date,
-            'updated_at' => null, // 'updated_at' is not included in the view
-            'order_details' => [], // Empty details, as the view does not include order details
+            'id' => $transactionId,
+            'user_name' => $firstItem->user_name,
+            'total_amount' => $firstItem->total,
+            'status' => $firstItem->status,
+            'created_at' => $firstItem->transaction_date,
+            'transaction_items' => $items->map(function ($item) {
+                return [
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'item_total' => $item->item_total,
+                ];
+            })->toArray(),
         ];
     });
 
     // Return the transformed data to the Inertia view
     return Inertia::render('Staff/StaffOrderManage', [
-        'orders' => $orders
+        'transactions' => $groupedTransactions->values(), // Ensure a clean array for Inertia
     ]);
 }
+
 
 
     public function acceptOrder(Order $order)
@@ -100,6 +109,90 @@ public function viewOrder()
         $order->delete();
         return redirect()->back()->with('success', 'Order deleted successfully.');
     }
+    public function viewOrders()
+    {
+        $orders = DB::select('SELECT * FROM   transaction_summary_admin');
+        $details = DB::select('SELECT * FROM order_products');
+
+        return Inertia::render('Staff/StaffOrderManage', [
+            'orders' => $orders,
+            'details' => $details,
+        ]);
+    }
+
+    // View order history
+    // View order history
+    public function getOrderHistorys()
+    {
+        $orders = DB::select('SELECT * FROM  transaction_summary_admin');
+
+        return Inertia::render('Staff/StaffOrderManage', [
+            'orders' => $orders,
+        ]);
+    }
+
+
+    // Delete an order by ID
+    public function deleteOrders($id)
+    {
+        // Check if the order exists
+        $order = DB::table('transactions')->where('id', $id)->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        // Delete the order
+        DB::table('transactions')->where('id', $id)->delete();
+
+        return redirect()->route('staff.orders')->with('success', 'Order deleted successfully.');
+    }
+
+    // Accept an order and update its status to 'Processing'
+    public function acceptOrders(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|numeric',
+        ]);
+
+        DB::table('transactions')
+            ->where('id', $validated['id'])
+            ->update(['status' => 'Processing']);
+
+        return Inertia::location('/Staff/StaffOrderManage');
+    }
+
+    // Ship an order and update its status to 'Shipped'
+    public function shipOrders(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|numeric',
+        ]);
+
+        DB::table('transactions')
+            ->where('id', $validated['id'])
+            ->update(['status' => 'Shipped']);
+
+            return Inertia::location('/Staff/StaffOrderManage');
+    }
+
+    // Complete an order and update its status to 'Completed'
+    public function completeOrders(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|numeric',
+        ]);
+
+        DB::table('transactions')
+            ->where('id', $validated['id'])
+            ->update(['status' => 'Completed']);
+
+            return Inertia::location('/Staff/StaffOrderManage');
+    }
+
+
+
+
 }
 
 

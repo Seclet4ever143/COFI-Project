@@ -6,6 +6,33 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import axios from 'axios';
 import { PlusIcon } from '@heroicons/vue/24/outline';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
+import { toRaw } from 'vue';
+
+// Remove one of these declarations
+const rawFormData = {
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    role_id: "",
+};
+// Define editForm as a reactive object
+const editForm = reactive({
+    id: null,
+    name: '',
+    email: '',
+    phone: '',
+    role_id: '',
+    reset() {
+        this.id = null;
+        this.name = '';
+        this.email = '';
+        this.phone = '';
+        this.role_id = '';
+    },
+});
+
 
 
 const form = ref({
@@ -32,53 +59,53 @@ const users = reactive({
 
 // Modal state
 const showEditModal = ref(false);
-const editForm = useForm({
-    id: null,
-    name: '',
-    email: '',
-    phone: '',
-    role: '',
-});
+editForm.reset = function () {
+    this.id = null;
+    this.name = '';
+    this.email = '';
+    this.phone = '';
+    this.role_id = '';
+};
+
 
 // Modal state for delete confirmation
 const showDeleteModal = ref(false);
 const deleteUserId = ref(null);  // Store the user ID to be deleted
 
 // Function to create an account
-// const createAccount = () => {
-//     if (form.password !== form.confirmPassword) {
-//         alert('Passwords do not match');
-//         return;
-//     }
-
-//     form.post(route('account.store'), {
-//         onSuccess: () => {
-//             form.reset();
-//             successMessage.value = 'Account created successfully!';
-//             fetchUsers(); // Refresh users after creating a new account
-//         },
-//         onError: (errors) => {
-//             console.error(errors);
-
-//             if (errors.email) {
-//                 errorMessage.value = errors.email; // Display email error specifically
-//             } else if (errors.phone) {
-//                 errorMessage.value = errors.phone; // Display phone error
-//             } else {
-//                 errorMessage.value = 'There were some errors with your submission.';
-//             }
-//         },
-//     });
-// };
 
 
+const createAccount = async () => {
+    if (form.value.password !== form.value.confirmPassword) {
+        errorMessage.value = 'Passwords do not match!';
+        return;
+    }
 
+    try {
+        const rawFormData = toRaw(form.value);
+        await axios.post(route('account.store'), rawFormData);
+        form.value = {
+            name: '',
+            email: '',
+            phone: '',
+            password: '',
+            confirmPassword: '',
+            role_id: '3',
+        };
+        successMessage.value = 'Account created successfully!';
+        showModal.value = false;
+        fetchUsers();
+    } catch (error) {
+        const { errors } = error.response?.data || {};
+        errorMessage.value = errors?.email?.[0] || errors?.phone?.[0] || 'An unexpected error occurred.';
+    }
+};
 
 
 // Fetch users grouped by role
 const fetchUsers = async () => {
     try {
-        const response = await axios.get(route('users.grouped'));
+        const response = await axios.get(route('users.grouped'),rawFormData);
         console.log(response.data); // Log the response to check its structure
         users.admin = response.data.admin || [];
         users.staff = response.data.staff || [];
@@ -103,28 +130,21 @@ const openEditModal = (user) => {
 
 
 // Update User
-// Update User
-const updateUser = () => {
-    // Validate if data exists
+const updateUser = async () => {
     if (!editForm.name || !editForm.email || !editForm.phone || !editForm.role_id) {
-        alert('Please fill all fields');
+        errorMessage.value = 'Please fill all fields.';
         return;
     }
 
-    // Update user
-    axios.put(route('account.update', editForm.id), editForm)
-        .then(() => {
-            successMessage.value = 'Account updated successfully!';
-            showEditModal.value = false;
-            fetchUsers();  // Refresh users list
-        })
-        .catch((error) => {
-            console.error('Error updating user:', error);
-            alert('There was an error updating the account.');
-        });
+    try {
+        await axios.put(route('account.update', editForm.id), toRaw(editForm));
+        successMessage.value = 'Account updated successfully!';
+        fetchUsers();
+        cancelEdit();
+    } catch (error) {
+        errorMessage.value = 'Failed to update user.';
+    }
 };
-
-
 
 
 
@@ -145,29 +165,29 @@ const confirmDeleteUser = (userId) => {
 // Function to delete the user
 const deleteUser = async () => {
     try {
-        console.log(deleteUserId.value);
-        await form.delete(route('account.destroy', deleteUserId.value));
-
-        successMessage.value = 'User deleted successfully!';  // Show success message
-        showDeleteModal.value = false;  // Close the modal
+        // Send delete request
+        axios.delete(route('account.destroy', deleteUserId.value));
+        successMessage.value = 'User deleted successfully!';
         fetchUsers();  // Refresh the users list
+        showDeleteModal.value = false;  // Close the delete modal
     } catch (error) {
-        console.error(error);
-        alert('Error deleting user');
+        console.error('Error deleting user:', error.response);
+        errorMessage.value = 'Failed to delete user.';
     }
 };
 
-const createAccount = () => {
-    if (form.value.password !== form.value.confirmPassword) {
-        alert('Passwords do not match!');
-        return;
-    }
-    // Handle form submission here
-    console.log('Account created:', form.value);
-    // Reset form and close modal
-    form.value = { name: '', email: '', phone: '', password: '', confirmPassword: '', role_id: '3' };
-    showModal.value = false;
-};
+
+// const createAccount = () => {
+//     if (form.value.password !== form.value.confirmPassword) {
+//         alert('Passwords do not match!');
+//         return;
+//     }
+//     // Handle form submission here
+//     console.log('Account created:', form.value);
+//     // Reset form and close modal
+//     form.value = { name: '', email: '', phone: '', password: '', confirmPassword: '', role_id: '3' };
+//     showModal.value = false;
+// };
 
 // const deleteUser = () => {
 
@@ -193,6 +213,14 @@ const createAccount = () => {
     <AdminAuthenticatedLayout>
         <div
             class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 transition-colors duration-300">
+            
+
+            <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-5 text-center ">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
+                    Account Management
+                </span>
+            </h1>
+
             <!-- Success Message -->
             <div v-if="successMessage"
                 class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-sm">
@@ -204,12 +232,6 @@ const createAccount = () => {
                 class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md shadow-sm">
                 {{ errorMessage }}
             </div>
-
-            <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-5 text-center ">
-                <span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
-                    Account Management
-                </span>
-            </h1>
 
             <!-- Modal Trigger Button -->
             <!-- <button @click="showModal = true"

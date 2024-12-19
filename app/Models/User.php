@@ -9,6 +9,8 @@ class User extends Authenticatable
 {
     use Notifiable;
 
+    protected $primaryKey = 'id';
+
     protected $fillable = [
         'role_id', 'name', 'email', 'phone', 'password', 'google_id',
     ];
@@ -19,9 +21,9 @@ class User extends Authenticatable
 
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class,'role_id');
     }
-
+    
     public function products()
     {
         return $this->hasMany(Product::class, 'updated_by');

@@ -227,7 +227,7 @@ const addToCart = (p_id) => {
           <h2 class="text-3xl font-bold text-green-600">{{category.id === 1 ? 'Holiday Limited Edition' : category.name }}</h2>
           <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div 
-              v-for="product in products.filter(product => product.category_id === category.id)" 
+              v-for="product in products.filter(product => product.category_id === category.id && product.availability ===   true)" 
               :key="product.id" 
               :class="{
                 'bg-gray-100': product.category_id !== 1,

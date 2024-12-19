@@ -27,13 +27,13 @@ const showingNavigationDropdown = ref(false);
 
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
+                                <NavLink :href="route('dash-board')" :active="route().current('dash-board')">
                                     Dashboard
                                 </NavLink>
                                 <NavLink :href="route('staff.menu')" :active="route().current('staff.menu')">
                                     Staff Menu Management
                                 </NavLink>
-                                <NavLink :href="route('staff.order')" :active="route().current('staff.order')">
+                                <NavLink :href="route('staff.orders')" :active="route().current('staff.orders')">
                                     Staff Order Management
                                 </NavLink>
 
@@ -41,6 +41,7 @@ const showingNavigationDropdown = ref(false);
 
 
                             </div>
+                            
                         </div>
 
                         <div class="hidden sm:ms-6 sm:flex sm:items-center">

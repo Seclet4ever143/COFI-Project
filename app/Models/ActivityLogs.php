@@ -12,6 +12,7 @@ class ActivityLogs extends Model
     protected $table = 'activity_logs';
 
     protected $fillable = [
+        'user_id',
         'current_users',
         'action_type',
         'table_name',
@@ -27,8 +28,7 @@ class ActivityLogs extends Model
         'new_data' => 'array',
     ];
 
-    public function User()
-    {
-        return $this->belongsTo(User::class, 'user_id');
+    public function user(){ 
+        return $this->belongsTo(User::class,'user_id');
     }
 }

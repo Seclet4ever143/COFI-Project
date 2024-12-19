@@ -17,7 +17,8 @@ class CustomerMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::check() || Auth::user()->role_id !== 3) {
-            abort(403, 'Unauthorized');        }
+            abort(403, 'Unauthorized');
+        }
 
         return $next($request);
     }

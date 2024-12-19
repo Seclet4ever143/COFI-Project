@@ -334,7 +334,7 @@ const removeItem = async (itemId) => {
           </div>
           <div class="flex justify-between">
             <p class="text-sm lg:text-base font-medium">Tax (12%):</p>
-            <p class="text-sm lg:text-base font-semibold">₱{{ tax }}</p>
+            <p class="text-sm lg:text-base font-semibold">₱{{ tax.toFixed(2) }}</p>
           </div>
           <div class="flex justify-between text-lg lg:text-xl font-bold">
             <p>Total:</p>
@@ -360,8 +360,8 @@ const removeItem = async (itemId) => {
           <label for="payment-method" class="block text-sm font-medium text-gray-700">Payment Method</label>
           <select id="payment-method" v-model="paymentMethod" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             <option value="">Select Payment Method</option>
-            <option value="gcash">GCash</option>
-            <option value="cod">Cash on Delivery</option>
+            <option value="GCASH">GCash</option>
+            <option value="CASH ON DELIVERY">Cash on Delivery</option>
           </select>
         </div>
 

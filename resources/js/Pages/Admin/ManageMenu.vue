@@ -5,7 +5,7 @@
     <AdminAuthenticatedLayout>
 
 
-        <div class="min-h-screen container mx-auto px-10 py-8 bg-slate-800">
+        <div class="min-h-screen container mx-auto px-10 py-8 bg-gray-700">
             <div class="mb-10 mx-auto justify-center text-center w-[300px] ">
                 <h1 class="text-xl font-bold leading-tight text-gray-800  bg-slate-300 rounded-lg">
                     INVENTORY

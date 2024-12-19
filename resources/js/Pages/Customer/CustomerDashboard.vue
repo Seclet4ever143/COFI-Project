@@ -9,11 +9,11 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { ref, defineProps } from 'vue';
 
 const props = defineProps({
-    products:{
+    prod:{
         type: Array,
         default: () => [],
     },
-    category:{
+    cat:{
         type: Array,
         default:() => [],
     }
@@ -34,15 +34,15 @@ const showingNavigationDropdown = ref(false);
                         <div class="flex ">
                             <!-- Logo -->
                             <div class="flex shrink-0 items-center ">
-                                <Link :href="route('dashboard')">
+                                <Link :href="route('dash-board')">
                                     <ApplicationLogo class="block h-9 w-auto fill-current text-gray-800" />
                                 </Link>
-                                <NavLink :href="route('dashboard')" class="ml-2 text-xl font-bold text-gray-900">COFI</NavLink>
+                                <NavLink :href="route('dash-board')" class="ml-2 text-xl font-bold text-gray-900">COFI</NavLink>
                             </div>
 
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">HOME</NavLink>
+                                <NavLink :href="route('dash-board')" :active="route().current('dash-board')">HOME</NavLink>
                                 <NavLink :href="route('menu')" class="me-20">MENU</NavLink>
                                 <NavLink :href="route('contact')">CONTACT US</NavLink>
                             </div>
@@ -99,7 +99,7 @@ const showingNavigationDropdown = ref(false);
                 <!-- Responsive Navigation Menu -->
                 <div :class="{ block: showingNavigationDropdown, hidden: !showingNavigationDropdown }" class="sm:hidden">
                     <div class="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">HOME</ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('dash-board')" :active="route().current('dash-board')">HOME</ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('menu')" :active="route().current('menu')">MENU</ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('contact')" :active="route().current('contact')">CONTACT US</ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('cart')" :active="route().current('cart')">MY CART</ResponsiveNavLink>
@@ -136,7 +136,7 @@ const showingNavigationDropdown = ref(false);
                     <h1 class="text-5xl font-bold text-black font-serif">HOLIDAY LIMITED EDITION</h1>
                 </div>
                 <div class="flex flex-wrap justify-center gap-4 px-3">
-                    <div v-for="product in products.filter(product => product.category_id === 1)" :key="product.id" class="rounded-lg pt-4 text-center shadow-lg w-[150px]">
+                    <div v-for="product in prod.filter(product => product.category_id === 1)" :key="product.id" class="rounded-lg pt-4 text-center shadow-lg w-[150px]">
                         <img :src="`/storage/${product.image}`" :alt="product.name" class="h-40 w-auto mx-auto mb-2" />
                         <h2 class="text-xs text-black font-bold">{{ product.name }}</h2>
                         <p class="text-xs text-black mb-2 font-semibold">₱{{ product.price }}</p>
@@ -153,7 +153,7 @@ const showingNavigationDropdown = ref(false);
                     <h1 class="text-lg md:ms-20 font-bold text-black font-serif">BARISTA PICKS</h1>
                 </div>
                 <div class="flex flex-wrap justify-center gap-4 px-3">
-                    <div v-for="(product) in products.filter(product => product.category_id === 2).slice(0, 4)" :key="product.id" class="rounded-lg pt-4 text-center shadow-lg w-[150px]">
+                    <div v-for="(product) in prod.filter(product => product.category_id === 2).slice(0, 4)" :key="product.id" class="rounded-lg pt-4 text-center shadow-lg w-[150px]">
                         <img :src="`/storage/${product.image}`" :alt="product.name" class="h-40 w-auto mx-auto mb-2" />
                         <h2 class="text-xs text-black font-bold">{{ product.name }}</h2>
                         <p class="text-xs text-black mb-2 font-semibold">₱{{ product.price }}</p>
@@ -178,7 +178,7 @@ const showingNavigationDropdown = ref(false);
                     <div class="w-full sm:w-1/2 md:w-1/3 mb-6 md:mb-0">
                         <h3 class="text-xl font-bold mb-2">Quick Links</h3>
                         <div class="flex flex-col space-y-4">
-                          <NavLink :href="route('dashboard')" :active="route().current('dashboard')" class="text-gray-400 hover:text-white">HOME</NavLink>
+                          <NavLink :href="route('dash-board')" :active="route().current('dash-board')" class="text-gray-400 hover:text-white">HOME</NavLink>
                           <NavLink :href="route('menu')" :active="route().current('menu')"  class="text-gray-400 hover:text-white">MENU</NavLink>
                           <NavLink :href="route('contact')" :active="route().current('contact')"  class="text-gray-400 hover:text-white">CONTACT US</NavLink>
                           <NavLink :href="route('cart')" :active="route().current('cart')" class="text-gray-400 hover:text-white">MY CART</NavLink>

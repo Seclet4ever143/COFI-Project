@@ -11,7 +11,8 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::check() || Auth::user()->role_id !== 1) {
-            abort(403, 'Unauthorized');        }
+            abort(403, 'Unauthorized');
+        }
 
         return $next($request);
     }

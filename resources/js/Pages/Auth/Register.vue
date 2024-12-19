@@ -7,11 +7,13 @@ import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const form = useForm({
+    role_id: 3,
     name: '',
     email: '',
     password: '',
     password_confirmation: '',
     phone: '', // Include phone here
+  
 });
 
 const submit = () => {
