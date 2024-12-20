@@ -140,7 +140,7 @@ const showingNavigationDropdown = ref(false);
                         <img :src="`/storage/${product.image}`" :alt="product.name" class="h-40 w-auto mx-auto mb-2" />
                         <h2 class="text-xs text-black font-bold">{{ product.name }}</h2>
                         <p class="text-xs text-black mb-2 font-semibold">₱{{ product.price }}</p>
-                        <button class="px-7 py-1 mb-4 text-white bg-[#2D5522] font-bold text-sm hover:bg-yellow-300 hover:text-black transition-all duration-300 ease-in-out rounded-b-lg">ADD TO CART</button>
+                        <Link :href="route('menu')" class="px-7 py-1 mb-4 text-white bg-[#2D5522] font-bold text-sm hover:bg-yellow-300 hover:text-black transition-all duration-300 ease-in-out rounded-b-lg">ADD TO CART</Link>
                     </div>
                 </div>
             </div>        
@@ -157,7 +157,7 @@ const showingNavigationDropdown = ref(false);
                         <img :src="`/storage/${product.image}`" :alt="product.name" class="h-40 w-auto mx-auto mb-2" />
                         <h2 class="text-xs text-black font-bold">{{ product.name }}</h2>
                         <p class="text-xs text-black mb-2 font-semibold">₱{{ product.price }}</p>
-                        <button class="px-7 py-1 mb-4 bg-black text-white font-bold text-sm hover:bg-yellow-300 hover:text-black transition-all duration-300 ease-in-out rounded-b-lg">ADD TO CART</button>
+                        <Link :href="route('menu')" class="px-7 py-1 mb-4 bg-black text-white font-bold text-sm hover:bg-yellow-300 hover:text-black transition-all duration-300 ease-in-out rounded-b-lg">ADD TO CART</Link>
                     </div>
                     <div class="flex justify-center mt-10">
                         <NavLink :href="route('menu')" class="inline-flex items-center ">

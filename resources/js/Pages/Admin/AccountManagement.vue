@@ -7,6 +7,7 @@ import axios from 'axios';
 import { PlusIcon } from '@heroicons/vue/24/outline';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import { toRaw } from 'vue';
+import { Inertia } from '@inertiajs/inertia';
 
 // Remove one of these declarations
 const rawFormData = {
@@ -78,6 +79,28 @@ const deleteUserId = ref(null);  // Store the user ID to be deleted
 const createAccount = async () => {
     if (form.value.password !== form.value.confirmPassword) {
         errorMessage.value = 'Passwords do not match!';
+        showModal.value = false;
+        return;
+    }
+
+    if (form.value.phone.length !== 11) {
+        errorMessage.value = 'Invalid Phone number, Should not exceed 11 words.';
+        showModal.value = false;
+        return;
+    }
+
+    if (!form.value.phone.startsWith('0')) {
+        errorMessage.value = 'Invalid Phone number.';
+        showModal.value = false;
+        return;
+    }
+
+    const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+
+    if (!strongPasswordPattern.test(form.value.password)) {
+        errorMessage.value = 'Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.';
+        showModal.value = false;
         return;
     }
 
@@ -93,11 +116,14 @@ const createAccount = async () => {
             role_id: '3',
         };
         successMessage.value = 'Account created successfully!';
+        errorMessage.value = null;
         showModal.value = false;
         fetchUsers();
     } catch (error) {
         const { errors } = error.response?.data || {};
         errorMessage.value = errors?.email?.[0] || errors?.phone?.[0] || 'An unexpected error occurred.';
+        showModal.value = false;
+        return;
     }
 };
 
@@ -167,6 +193,7 @@ const deleteUser = async () => {
     try {
         // Send delete request
         axios.delete(route('account.destroy', deleteUserId.value));
+        
         successMessage.value = 'User deleted successfully!';
         fetchUsers();  // Refresh the users list
         showDeleteModal.value = false;  // Close the delete modal
@@ -202,6 +229,22 @@ const deleteUser = async () => {
 //             console.error('Error:', error);
 //         });
 // };
+const showDeleteModal1 = ref(false); // State for showing the delete modal
+const deleteUserId1 = ref(null);
+
+const confirmDeleteUser1 = (userId) => {
+  deleteUserId.value = userId; // Store the user ID to delete
+  showDeleteModal.value = true; // Show the modal
+};
+
+const deleteUser1 = () => {
+  Inertia.delete(`/Admin/Account/delete/${deleteUserId.value}`, {
+    preserveScroll: true, // Optionally preserve the scroll position
+    onSuccess: () => {
+      showDeleteModal.value = false; // Close the delete modal on success
+    },
+  });
+};
 
 
 </script>
@@ -280,7 +323,7 @@ const deleteUser = async () => {
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <button @click="openEditModal(user)"
                                         class="text-indigo-600 hover:text-indigo-900 mr-2">Update</button>
-                                    <button @click="confirmDeleteUser(user.id)"
+                                    <button @click="confirmDeleteUser1(user.id)"
                                         class="text-red-600 hover:text-red-900">Delete</button>
                                 </td>
                             </tr>
@@ -324,9 +367,9 @@ const deleteUser = async () => {
                         <div class="space-y-2">
                             <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone
                                 Number</label>
-                            <input id="phone" type="tel" v-model="form.phone"
+                            <input id="phone" type="tel" v-model="form.phone" 
                                 class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
-                                required />
+                                required  maxlength="11" minlength="11" pattern="\d{11}"  @input="form.phone = form.phone.replace(/\D/g, '')" />
                         </div>
 
                         <div class="space-y-2">
@@ -442,7 +485,7 @@ const deleteUser = async () => {
                     <div class="flex justify-end space-x-3 p-4">
                         <button @click="showDeleteModal = false"
                             class="px-4 py-2 text-gray-500 border rounded-md hover:bg-gray-100 transition duration-150 ease-in-out">Cancel</button>
-                        <PrimaryButton @click="deleteUser" class="bg-red-600 hover:bg-red-700">Delete</PrimaryButton>
+                        <PrimaryButton @click="deleteUser1" class="bg-red-600 hover:bg-red-700">Delete</PrimaryButton>
                     </div>
                 </div>
             </div>

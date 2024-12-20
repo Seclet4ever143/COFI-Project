@@ -79,21 +79,15 @@ class AuthenticatedSessionController extends Controller
             // Get authenticated user
             $user = Auth::user();
 
-            switch ($user->role_id) {
-                case 1:
-                    return redirect()->route('dash-board');
-                    
-                case 2:
-                    return redirect()->route('dash-board');
-                    
-                case 3:
-                    return redirect()->route('dash-board');
-                    
-            }   //dd(config('database.default'));
+            return match ($user->role_id) {
+                1 => redirect()->route('dash-board'),
+                2 => redirect()->route('dash-board'),
+                3 => redirect()->route('dash-board'),
+            };   //dd(config('database.default'));
 
         }
 
-        return redirect()->intended(route('/', absolute: false));
+        return redirect()->intended(route('dash-board', absolute: false));
     }
 
 

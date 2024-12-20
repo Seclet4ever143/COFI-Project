@@ -13,17 +13,45 @@ const form = useForm({
     password: '',
     password_confirmation: '',
     phone: '', // Include phone here
-  
+
 });
 
 const submit = () => {
+    // Check if passwords match
+    if (form.password !== form.password_confirmation) {
+        form.errors.password_confirmation = 'Passwords do not match!';
+        return;
+    }
+
+    // Check if the phone number is exactly 11 characters
+    if (form.phone.length !== 11) {
+        form.errors.phone = 'Phone number must be exactly 11 characters.';
+        return;
+    }
+
+    if (!form.phone.startsWith('0')) {
+        form.errors.phone = 'Invalid Phone Number';
+        return;
+    }
+
+    // Check for a strong password
+    const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    if (!strongPasswordPattern.test(form.password)) {
+        form.errors.password = 'Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.';
+        return;
+    }
+
+    // Submit the form if all conditions are met
     form.post(route('register'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
+
 </script>
 
 <template>
+
     <Head title="Register" />
 
     <div class="flex min-h-screen items-center justify-center bg-white p-4 sm:p-6">
@@ -38,76 +66,47 @@ const submit = () => {
 
                 <form @submit.prevent="submit" class="space-y-4">
                     <div>
-                        <TextInput
-                            id="name"
-                            type="text"
+                        <TextInput id="name" type="text"
                             class="mt-1 block w-full rounded-full border-gray-300 px-4 py-2 shadow-sm focus:border-black focus:ring-black sm:px-6 sm:py-3"
-                            v-model="form.name"
-                            placeholder="Name"
-                            required
-                            autofocus
-                            autocomplete="name"
-                        />
+                            v-model="form.name" placeholder="Name" required autofocus autocomplete="name" />
                         <InputError class="mt-2" :message="form.errors.name" />
                     </div>
 
                     <div>
-                        <TextInput
-                            id="email"
-                            type="email"
+                        <TextInput id="email" type="email"
                             class="mt-1 block w-full rounded-full border-gray-300 px-4 py-2 shadow-sm focus:border-black focus:ring-black sm:px-6 sm:py-3"
-                            v-model="form.email"
-                            placeholder="Email"
-                            required
-                            autocomplete="username"
-                        />
+                            v-model="form.email" placeholder="Email" required autocomplete="username" />
                         <InputError class="mt-2" :message="form.errors.email" />
                     </div>
 
                     <div>
-                        <TextInput
-                            id="phone"
-                            type="tel"
+                        <TextInput id="phone" type="tel"
                             class="mt-1 block w-full rounded-full border-gray-300 px-4 py-2 shadow-sm focus:border-black focus:ring-black sm:px-6 sm:py-3"
-                            v-model="form.phone"
-                            placeholder="Phone"
+                            v-model="form.phone" placeholder="Phone" maxlength="11" minlength="11" pattern="\d{11}"
                             required
-                        />
+                            @input="form.phone = form.phone.replace(/\D/g, '')"/>
                         <InputError class="mt-2" :message="form.errors.phone" />
                     </div>
 
                     <div>
-                        <TextInput
-                            id="password"
-                            type="password"
+                        <TextInput id="password" type="password"
                             class="mt-1 block w-full rounded-full border-gray-300 px-4 py-2 shadow-sm focus:border-black focus:ring-black sm:px-6 sm:py-3"
-                            v-model="form.password"
-                            placeholder="Password"
-                            required
-                            autocomplete="new-password"
-                        />
+                            v-model="form.password" placeholder="Password" required autocomplete="new-password" />
                         <InputError class="mt-2" :message="form.errors.password" />
                     </div>
 
                     <div>
-                        <TextInput
-                            id="password_confirmation"
-                            type="password"
+                        <TextInput id="password_confirmation" type="password"
                             class="mt-1 block w-full rounded-full border-gray-300 px-4 py-2 shadow-sm focus:border-black focus:ring-black sm:px-6 sm:py-3"
-                            v-model="form.password_confirmation"
-                            placeholder="Confirm Password"
-                            required
-                            autocomplete="new-password"
-                        />
+                            v-model="form.password_confirmation" placeholder="Confirm Password" required
+                            autocomplete="new-password" />
                         <InputError class="mt-2" :message="form.errors.password_confirmation" />
                     </div>
 
                     <div class="pt-4">
                         <PrimaryButton
                             class="w-full justify-center rounded-full bg-black py-2 text-center text-white hover:bg-gray-800 sm:py-3"
-                            :class="{ 'opacity-25': form.processing }"
-                            :disabled="form.processing"
-                        >
+                            :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
                             Sign Up
                         </PrimaryButton>
                     </div>
@@ -115,7 +114,7 @@ const submit = () => {
                     <div class="mt-4 text-center">
                         <span class="text-gray-600">Already a member? </span>
                         <Link :href="route('login')" class="font-semibold text-black hover:underline">
-                            Sign in
+                        Sign in
                         </Link>
                     </div>
                 </form>
@@ -128,4 +127,3 @@ const submit = () => {
         </div>
     </div>
 </template>
-

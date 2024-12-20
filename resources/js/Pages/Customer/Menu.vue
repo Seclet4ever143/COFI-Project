@@ -208,7 +208,7 @@ const addToCart = (p_id) => {
             v-for="product in searchResults" 
             :key="product.id" 
             class="rounded-lg p-4 text-center shadow-md bg-gray-100">
-            <img :src="product.image" :alt="product.name" class="h-32 mx-auto mb-2">
+            <img :src="`/storage/${product.image}`" :alt="product.name" class="h-32 mx-auto mb-2">
             <h3 class="text-lg font-semibold">{{ product.name }}</h3>
             <p class="text-gray-500">₱{{ product.price }}</p>
             <button @click="openModal(product)" class="mt-2 w-full py-1 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700">

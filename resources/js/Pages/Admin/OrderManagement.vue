@@ -289,8 +289,8 @@ const props = defineProps({
   }
 });
 
-console.log(props.orders);
-console.log(props.details);
+console.log(props.orders.customer_name);
+console.log(props.details); 
 
 const orders = ref(props.orders || []);
 const details = ref(props.details || []);

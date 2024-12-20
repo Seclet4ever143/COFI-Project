@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Redirect;
@@ -98,7 +99,7 @@ class AdminController extends Controller
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users,email', // Unique email check
-        'phone' => 'required|string|max:15|unique:users,phone', // Unique phone check
+        'phone' => 'required|string|max:11|unique:users,phone', // Unique phone check
         'password' => 'required|string|min:8',
         'role_id' => 'required|exists:role,id', // Validate role_id against the roles table
     ], [
@@ -141,7 +142,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => "required|string|email|max:255|unique:users,email,$id", // Ensure the current user's email is not considered unique
-            'phone' => "required|string|max:15|unique:users,phone,$id", // Ensure current phone is not considered unique
+            'phone' => "required|string|max:11|unique:users,phone,$id", // Ensure current phone is not considered unique
             'role_id' => 'required|exists:role,id', // Validate role_id exists in roles table
         ]);
 
@@ -161,26 +162,25 @@ class AdminController extends Controller
     {
         try {
             // Log before making any in
-            Log::info("Attempting to delete user with ID: $id");
+        
     
             // Update related products
             $productsUpdated = DB::table('products')->where('updated_by', $id)->update(['updated_by' => null]);
             Log::info("Updated products related to user $id: $productsUpdated");
-    
+            //dd($id);
             // Delete the user
-            $userDeleted = DB::table('users')->where('id', $id)->delete();
-            Log::info("Deleted user with ID: $id: $userDeleted");
+            $userDeleted = DB::table('users')
+                ->where('id', $id)
+                ->delete();
+            //Log::info("Deleted user with ID: $id: $userDeleted");
     
-            return back()->with('message', 'Account deleted successfully!');
+            return back()->with('success', 'Account deleted successfully!');
         } catch (\Exception $e) {
             // Log the error message
             Log::error("Error deleting user with ID: $id - " . $e->getMessage());
             return back()->withErrors(['error' => 'Failed to delete account.']);
         }
     }
-    
-    
-
 
 
 
@@ -452,6 +452,23 @@ public function indexLogs()
 
         return response()->json($activityLog);
     }
+
+    public function userDestroy($id)
+    {
+        // Attempt to delete the user using the DB Facade
+        $deleted = DB::table('users')
+            ->where('id', $id)
+            ->delete();
+
+        if (!$deleted) {
+            // If no rows were deleted (user not found)
+            return redirect()->route('accountmanagement')->with('error', 'User not found');
+        }
+
+        // If the user was deleted successfully
+        return redirect()->route('accountmanagement')->with('error', 'User deleted successfully');
+    }
 }
+
 
 

@@ -366,7 +366,7 @@ const removeItem = async (itemId) => {
         </div>
 
         <!-- GCash Number input, shown only if GCash is selected -->
-        <div v-if="paymentMethod === 'gcash'" class="mb-4">
+        <div v-if="paymentMethod === 'GCASH'" class="mb-4">
           <label for="gcash-number" class="block text-sm font-medium text-gray-700">GCash Mobile Number</label>
           <input
             id="gcash-number"

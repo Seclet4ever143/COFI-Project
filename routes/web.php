@@ -22,6 +22,15 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/dashboard', function () {
+    return match (Auth::user()->role_id) {
+        1 => Inertia::render('Admin/AdminDashboard'),
+        2 => Inertia::render('Staff/StaffDashboard'),
+        3 => redirect()->route('dashboard'),
+        default => abort(403),
+    };
+})->name('dash-board');
+
 
 // User Profile Routes
 Route::middleware('auth')->group(function () {
@@ -60,7 +69,8 @@ Route::middleware(['auth', 'setDB'])->group(function () {
         Route::post('Admin/AccountManagement/Insert', [AdminController::class, 'insertIntoAccountManagement'])->name('account.store');
         Route::get('Admin/AccountManagement/Display', [AdminController::class, 'displayUsers'])->name('users.grouped');
         Route::put('Admin/Account/{id}', [AdminController::class, 'updateUsers'])->name('account.update');
-        Route::delete('/Admin/Account/Display/{id}', [AdminController::class, 'destroyUsers'])->name('account.destroy');
+        // Route::delete('/Admin/Account/delete/{id}', [AdminController::class, 'destroyUsers'])->name('account.destroy');
+        Route::delete('/Admin/Account/delete/{id}', [AdminController::class, 'destroyUsers'])->name('user.delete');
         
         Route::get('Admin/ProductManagement', [AdminController::class, 'viewProductManagement'])->name('productmanagement');// Update menu item details
         Route::get('Admin/ProductManagement/Display', [AdminController::class, 'displayProducts'])->name('products.index');

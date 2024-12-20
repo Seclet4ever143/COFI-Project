@@ -46,7 +46,7 @@ class CustomerController extends Controller
 
     public function search(Request $request)
     {
-        $query = $request->input('q');
+        $query = $request->input('');
         $products = Product::where('name', 'like', '%' . $query . '%')->get();
 
         return response()->json($products);
@@ -133,7 +133,7 @@ class CustomerController extends Controller
 
         // Delete the item from the database
         DB::table('cart_items')->where('id', $itemId)->delete();
-
+        
     }
 
 

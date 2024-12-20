@@ -225,7 +225,80 @@ const getSortIcon = (field) => {
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="transaction in props.transactions" :key="transaction.id"
+            <tr v-for="transaction in props.transactions.filter(transaction => transaction.status !== 'Completed')" :key="transaction.id"
+              class="hover:bg-gray-50 transition-colors duration-200">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${{ transaction.total_amount }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ transaction.payment_method }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ transaction.gcash_no || 'N/A' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span :class="{
+                  'bg-yellow-100 text-yellow-800': transaction.status === 'pending',
+                  'bg-green-100 text-green-800': transaction.status === 'completed',
+                  'bg-gray-100 text-gray-800': transaction.status !== 'pending' && transaction.status !== 'completed'
+                }" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                  {{ transaction.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(transaction.created_at) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>  
+    <!-- ==================================================COMPLETED============================================================= -->
+    <div class="mt-20"><hr></div>
+    <div class="mt-20">
+      <h1 class="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Completed Transactions</h1>  
+    </div>
+    <div class="bg-white shadow-md rounded-lg overflow-hidden hidden lg:block">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th @click="sortBy('total_amount')"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                <div class="flex items-center">
+                  Total Amount
+                  <component :is="getSortIcon('total_amount')" v-if="getSortIcon('total_amount')"
+                    class="ml-1 h-4 w-4" />
+                </div>
+              </th>
+              <th @click="sortBy('Payment Method')"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                <div class="flex items-center">
+                  Payment Method
+                  <component :is="getSortIcon('total_amount')" v-if="getSortIcon('total_amount')"
+                    class="ml-1 h-4 w-4" />
+                </div>
+              </th>
+              <th @click="sortBy('gcash_no')"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                <div class="flex items-center">
+                  Gcash Number
+                  <component :is="getSortIcon('gcash_no')" v-if="getSortIcon('gcash_no')" class="ml-1 h-4 w-4" />
+                </div>
+              </th>
+              <th @click="sortBy('status')"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                <div class="flex items-center">
+                  Status
+                  <component :is="getSortIcon('status')" v-if="getSortIcon('status')" class="ml-1 h-4 w-4" />
+                </div>
+              </th>
+              <th @click="sortBy('created_at')"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                <div class="flex items-center">
+                  Date
+                  <component :is="getSortIcon('created_at')" v-if="getSortIcon('created_at')" class="ml-1 h-4 w-4" />
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="transaction in props.transactions.filter(transaction => transaction.status === 'Completed')" :key="transaction.id"
               class="hover:bg-gray-50 transition-colors duration-200">
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${{ transaction.total_amount }}
               </td>

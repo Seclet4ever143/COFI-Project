@@ -300,8 +300,8 @@ const expandedOrders = ref({});
 
 const filteredOrders = computed(() => {
     return orders.value.filter(order => {
-        const userName = order.user_name || ''; // Default to an empty string if user_name is undefined
-        return userName.toLowerCase().includes(searchQuery.value.toLowerCase());
+        const userName = order.id || ''; // Default to an empty string if user_name is undefined
+        return userName.toString().includes(searchQuery.value.toLowerCase());
     });
 });
 

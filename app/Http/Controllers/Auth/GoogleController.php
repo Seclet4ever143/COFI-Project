@@ -30,7 +30,23 @@ public function handleGoogleCallback()
         // Log the user in
         Auth::login($user);
 
-        return redirect()->intended('/'); // Adjust redirect as needed
+        switch ($user->role_id) {
+            case 1:
+                // Admin dashboard
+                return redirect()->route('dash-board');
+            case 2:
+                // Staff dashboard
+                return redirect()->route('dash-board');
+            case 3:
+                // Customer dashboard
+                
+                
+               return redirect()->intended('/'); // Adjust redirect as needed
+            default:
+                // Fallback to home or another default route
+                return redirect()->route('/');
+            }
+
     } catch (\Exception $e) {
         return redirect()->route('login')->with('status', 'An error occurred during login. Please try again.');
     }
