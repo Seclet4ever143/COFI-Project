@@ -131,7 +131,7 @@ const createAccount = async () => {
 // Fetch users grouped by role
 const fetchUsers = async () => {
     try {
-        const response = await axios.get(route('users.grouped'),rawFormData);
+        const response = await axios.get(route('users.grouped'), rawFormData);
         console.log(response.data); // Log the response to check its structure
         users.admin = response.data.admin || [];
         users.staff = response.data.staff || [];
@@ -189,11 +189,11 @@ const confirmDeleteUser = (userId) => {
 
 
 // Function to delete the user
-const deleteUser = async () => {
+const deleteUser1 = async () => {
     try {
         // Send delete request
-        axios.delete(route('account.destroy', deleteUserId.value));
-        
+        axios.delete(route('user.delete', deleteUserId.value));
+
         successMessage.value = 'User deleted successfully!';
         fetchUsers();  // Refresh the users list
         showDeleteModal.value = false;  // Close the delete modal
@@ -233,18 +233,21 @@ const showDeleteModal1 = ref(false); // State for showing the delete modal
 const deleteUserId1 = ref(null);
 
 const confirmDeleteUser1 = (userId) => {
-  deleteUserId.value = userId; // Store the user ID to delete
-  showDeleteModal.value = true; // Show the modal
+    deleteUserId.value = userId; // Store the user ID to delete
+    showDeleteModal.value = true; // Show the modal
 };
 
-const deleteUser1 = () => {
-  Inertia.delete(`/Admin/Account/delete/${deleteUserId.value}`, {
-    preserveScroll: true, // Optionally preserve the scroll position
-    onSuccess: () => {
-      showDeleteModal.value = false; // Close the delete modal on success
-    },
-  });
-};
+// const deleteUser = () => {
+//     Inertia.delete(`/Admin/Account/delete/${deleteUserId.value}`, {
+
+//         preserveScroll: true, // Optionally preserve the scroll position
+//         onSuccess: () => {
+//             successMessage.value = 'User deleted successfully!';
+//             fetchUsers();  // Refresh the users list
+//             showDeleteModal.value = false; // Close the delete modal on success
+//         },
+//     });
+// };
 
 
 </script>
@@ -256,7 +259,7 @@ const deleteUser1 = () => {
     <AdminAuthenticatedLayout>
         <div
             class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 transition-colors duration-300">
-            
+
 
             <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-5 text-center ">
                 <span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
@@ -367,9 +370,10 @@ const deleteUser1 = () => {
                         <div class="space-y-2">
                             <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone
                                 Number</label>
-                            <input id="phone" type="tel" v-model="form.phone" 
+                            <input id="phone" type="tel" v-model="form.phone"
                                 class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
-                                required  maxlength="11" minlength="11" pattern="\d{11}"  @input="form.phone = form.phone.replace(/\D/g, '')" />
+                                required maxlength="11" minlength="11" pattern="\d{11}"
+                                @input="form.phone = form.phone.replace(/\D/g, '')" />
                         </div>
 
                         <div class="space-y-2">

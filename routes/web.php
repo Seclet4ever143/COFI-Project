@@ -69,7 +69,7 @@ Route::middleware(['auth', 'setDB'])->group(function () {
         Route::post('Admin/AccountManagement/Insert', [AdminController::class, 'insertIntoAccountManagement'])->name('account.store');
         Route::get('Admin/AccountManagement/Display', [AdminController::class, 'displayUsers'])->name('users.grouped');
         Route::put('Admin/Account/{id}', [AdminController::class, 'updateUsers'])->name('account.update');
-        // Route::delete('/Admin/Account/delete/{id}', [AdminController::class, 'destroyUsers'])->name('account.destroy');
+        //Route::delete('/Admin/Account/delete/{id}', [AdminController::class, 'destroyUsers'])->name('account.destroy');
         Route::delete('/Admin/Account/delete/{id}', [AdminController::class, 'destroyUsers'])->name('user.delete');
         
         Route::get('Admin/ProductManagement', [AdminController::class, 'viewProductManagement'])->name('productmanagement');// Update menu item details

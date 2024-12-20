@@ -162,8 +162,6 @@ class AdminController extends Controller
     {
         try {
             // Log before making any in
-        
-    
             // Update related products
             $productsUpdated = DB::table('products')->where('updated_by', $id)->update(['updated_by' => null]);
             Log::info("Updated products related to user $id: $productsUpdated");
