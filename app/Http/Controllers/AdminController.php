@@ -451,21 +451,21 @@ public function indexLogs()
         return response()->json($activityLog);
     }
 
-    public function userDestroy($id)
-    {
-        // Attempt to delete the user using the DB Facade
-        $deleted = DB::table('users')
-            ->where('id', $id)
-            ->delete();
+    // public function userDestroy($id)
+    // {
+    //     // Attempt to delete the user using the DB Facade
+    //     $deleted = DB::table('users')
+    //         ->where('id', $id)
+    //         ->delete();
 
-        if (!$deleted) {
-            // If no rows were deleted (user not found)
-            return redirect()->route('accountmanagement')->with('error', 'User not found');
-        }
+    //     if (!$deleted) {
+    //         // If no rows were deleted (user not found)
+    //         return redirect()->route('accountmanagement')->with('error', 'User not found');
+    //     }
 
-        // If the user was deleted successfully
-        return redirect()->route('accountmanagement')->with('error', 'User deleted successfully');
-    }
+    //     // If the user was deleted successfully
+    //     return redirect()->route('accountmanagement')->with('error', 'User deleted successfully');
+    // }
 }
 
 
